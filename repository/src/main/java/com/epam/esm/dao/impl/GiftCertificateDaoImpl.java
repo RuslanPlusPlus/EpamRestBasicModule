@@ -2,7 +2,9 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.dao.rowmapper.GiftCertificateRowMapper;
+import com.epam.esm.dao.rowmapper.TagRowMapper;
 import com.epam.esm.entity.GiftCertificate;
+import com.epam.esm.entity.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -24,34 +26,37 @@ import static java.time.LocalDateTime.now;
 public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @Value("${gc.selectAll}")
-    private static String SQL_SELECT_ALL_GIFT_CERTIFICATES;
+    private String SQL_SELECT_ALL_GIFT_CERTIFICATES;
     @Value("${gc.selectById}")
-    private static String SQL_SELECT_GIFT_CERTIFICATE_BY_ID;
+    private String SQL_SELECT_GIFT_CERTIFICATE_BY_ID;
     @Value("${gc.selectByName}")
-    private static String SQL_FIND_GIFT_CERTIFICATE_BY_NAME;
+    private String SQL_FIND_GIFT_CERTIFICATE_BY_NAME;
     @Value("${gc.save}")
-    private static String SQL_ADD_GIFT_CERTIFICATE;
+    private String SQL_ADD_GIFT_CERTIFICATE;
     @Value("${gc.update}")
-    private static String SQL_UPDATE_GIFT_CERTIFICATE;
+    private String SQL_UPDATE_GIFT_CERTIFICATE;
     @Value("${gc.delete}")
-    private static String SQL_DELETE_GIFT_CERTIFICATE;
+    private String SQL_DELETE_GIFT_CERTIFICATE;
     @Value("${gc.addTag}")
-    private static String SQL_ADD_TAG_TO_GIFT_CERTIFICATE;
-    /*private final static String SELECT_TAGS = "SELECT * FROM tags INNER JOIN gift_certificate_tag_link " +
-            "ON tag.id = gift_certificate_tag_link.tag_id WHERE gift_certificate_tag_link.gift_certificate_id = ?";*/
+    private String SQL_ADD_TAG_TO_GIFT_CERTIFICATE;
+    @Value("${gc.findTags}")
+    private String SQL_FIND_TAGS;
     @Value("${gc.selectByTag}")
-    private static String SQL_SELECT_GIFT_CERTIFICATE_BY_TAG;
+    private String SQL_SELECT_GIFT_CERTIFICATE_BY_TAG;
 
     private final JdbcTemplate jdbcTemplate;
-    //private final TagRowMapper tagRowMapper;
+    private final TagRowMapper tagRowMapper;
     private final GiftCertificateRowMapper giftCertificateRowMapper;
 
     @Autowired
     public GiftCertificateDaoImpl(JdbcTemplate jdbcTemplate,
-                                  GiftCertificateRowMapper giftCertificateRowMapper){
+                                  GiftCertificateRowMapper giftCertificateRowMapper,
+                                  TagRowMapper tagRowMapper){
         this.jdbcTemplate = jdbcTemplate;
         this.giftCertificateRowMapper = giftCertificateRowMapper;
+        this.tagRowMapper = tagRowMapper;
     }
+
 
     @Override
     public List<GiftCertificate> findAll() {
@@ -96,10 +101,10 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     }
 
     @Override
-    public Optional<GiftCertificate> update(GiftCertificate giftCertificate) {
+    public Optional<GiftCertificate> update(GiftCertificate giftCertificate, long id) {
         jdbcTemplate.update(SQL_UPDATE_GIFT_CERTIFICATE, giftCertificate.getName(), giftCertificate.getDescription(),
                 giftCertificate.getPrice(), giftCertificate.getDuration(),
-                giftCertificate.getLastUpdateDate(), giftCertificate.getId());
+                giftCertificate.getLastUpdateDate(), giftCertificate.getId(), id);
         return findById(giftCertificate.getId());
     }
 
@@ -111,5 +116,10 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     @Override
     public List<GiftCertificate> findByTagName(String tagName) {
         return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_TAG, giftCertificateRowMapper);
+    }
+
+    @Override
+    public List<Tag> findGiftCertificateTags(long giftCertificateId) {
+        return jdbcTemplate.query(SQL_FIND_TAGS, tagRowMapper, giftCertificateId);
     }
 }

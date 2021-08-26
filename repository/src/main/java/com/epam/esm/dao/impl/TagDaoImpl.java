@@ -22,13 +22,13 @@ import java.util.Optional;
 public class TagDaoImpl implements TagDao {
 
     @Value("${tg.selectAll}")
-    private static String SQL_SELECT_ALL_SQL_TAGS;
+    private String SQL_SELECT_ALL_SQL_TAGS;
     @Value("${tg.selectById}")
-    private static String SQL_SELECT_TAG_BY_ID;
+    private String SQL_SELECT_TAG_BY_ID;
     @Value("${tg.delete}")
-    private static String SQL_DELETE_TAG;
+    private String SQL_DELETE_TAG;
     @Value("${tg.save}")
-    private static String SQL_ADD_TAG;
+    private String SQL_ADD_TAG;
 
     private final JdbcTemplate jdbcTemplate;
     private final TagRowMapper tagRowMapper;
