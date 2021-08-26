@@ -30,6 +30,12 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.epam.esm</groupId>
+      <artifactId>service</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>
