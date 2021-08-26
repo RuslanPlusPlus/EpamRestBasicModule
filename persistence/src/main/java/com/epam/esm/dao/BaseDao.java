@@ -7,5 +7,5 @@ public interface BaseDao <T>{
     public List<T> findAll();
     Optional<T> findById(long id);
     void delete(long id);
-    T save(T obj);
+    Optional<T> save(T obj);
 }
