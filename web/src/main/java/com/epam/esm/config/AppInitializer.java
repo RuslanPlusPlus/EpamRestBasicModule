@@ -6,15 +6,16 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-public class SpringServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+public class AppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        return new Class[0];
+        return new Class[] {AppConfig.class};
     }
 
     @Override
     protected Class<?>[] getServletConfigClasses() {
-        return new Class[] {WebConfig.class};
+        //return new Class[] {AppConfig.class};
+        return null;
     }
 
     @Override
@@ -22,7 +23,7 @@ public class SpringServletInitializer extends AbstractAnnotationConfigDispatcher
         return new String[] {"/"};
     }
 
-    @Override
+    /*@Override
     public void onStartup(ServletContext aServletContext) throws ServletException {
         super.onStartup(aServletContext);
         registerHiddenFieldFilter(aServletContext);
@@ -31,5 +32,5 @@ public class SpringServletInitializer extends AbstractAnnotationConfigDispatcher
     private void registerHiddenFieldFilter(ServletContext aContext) {
         aContext.addFilter("hiddenHttpMethodFilter",
                 new HiddenHttpMethodFilter()).addMappingForUrlPatterns(null ,true, "/*");
-    }
+    }*/
 }
