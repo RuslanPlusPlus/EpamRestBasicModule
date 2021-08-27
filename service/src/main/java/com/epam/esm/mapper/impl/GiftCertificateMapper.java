@@ -43,7 +43,7 @@ public class GiftCertificateMapper implements Mapper<GiftCertificate, GiftCertif
         giftCertificate.setDuration(dto.getDuration());
         giftCertificate.setCreateDate(dto.getCreateDate());
         giftCertificate.setLastUpdateDate(dto.getLastUpdateDate());
-        if (dto.getTags().isEmpty()) {
+        if (!dto.getTags().isEmpty()) {
             giftCertificate.setTags(tagMapper.mapDtoListToEntityList(dto.getTags()));
         }
         return giftCertificate;

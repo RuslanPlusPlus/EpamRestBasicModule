@@ -37,6 +37,8 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     private String SQL_UPDATE_GIFT_CERTIFICATE;
     @Value("${gc.delete}")
     private String SQL_DELETE_GIFT_CERTIFICATE;
+    @Value("${gc.deleteTagLink}")
+    private String SQL_DELETE_TAG_LINK;
     @Value("${gc.addTag}")
     private String SQL_ADD_TAG_TO_GIFT_CERTIFICATE;
     @Value("${gc.findTags}")
@@ -65,7 +67,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @Override
     public Optional<GiftCertificate> findById(long id) {
-        return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_ID, giftCertificateRowMapper).stream().findAny();
+        return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_ID, giftCertificateRowMapper, id).stream().findAny();
     }
 
     @Override
@@ -115,11 +117,16 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @Override
     public List<GiftCertificate> findByTagName(String tagName) {
-        return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_TAG, giftCertificateRowMapper);
+        return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_TAG, giftCertificateRowMapper, tagName);
     }
 
     @Override
     public List<Tag> findGiftCertificateTags(long giftCertificateId) {
         return jdbcTemplate.query(SQL_FIND_TAGS, tagRowMapper, giftCertificateId);
+    }
+
+    @Override
+    public void deleteTagLink(long giftCertificateId) {
+        jdbcTemplate.update(SQL_DELETE_TAG_LINK, giftCertificateId);
     }
 }

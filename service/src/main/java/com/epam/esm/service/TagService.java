@@ -9,4 +9,5 @@ public interface TagService {
     TagDto findById(Long id);
     List<TagDto> findAll();
     void delete(Long id);
+    boolean exists(TagDto tagDto);
 }

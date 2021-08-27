@@ -27,12 +27,16 @@ public class TagServiceImpl implements TagService {
     // TODO: 26.08.2021 throw exception or return optional
     @Override
     public TagDto save(TagDto tagDTO) {
-        Optional<Tag> optionalTag = tagDao.save(tagMapper.mapDtoToEntity(tagDTO));
-        TagDto savedTagTdo = new TagDto();
-        if (optionalTag.isPresent()){
-            savedTagTdo = tagMapper.mapEntityToDto(optionalTag.get());
+        TagDto resultTagDto = new TagDto();
+        if (!exists(tagDTO)){
+            Optional<Tag> optionalTag = tagDao.save(tagMapper.mapDtoToEntity(tagDTO));
+            if (optionalTag.isPresent()){
+                resultTagDto = tagMapper.mapEntityToDto(optionalTag.get());
+            }
+        }else {
+            resultTagDto = tagDTO;
         }
-        return savedTagTdo;
+        return resultTagDto;
     }
 
     @Override
@@ -57,5 +61,11 @@ public class TagServiceImpl implements TagService {
     @Override
     public void delete(Long id) {
         tagDao.delete(id);
+        tagDao.deleteCertificateLink(id);
+    }
+
+    @Override
+    public boolean exists(TagDto tagDto) {
+        return tagDao.findByName(tagDto.getName()).isPresent();
     }
 }

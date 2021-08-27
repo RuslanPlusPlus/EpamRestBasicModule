@@ -27,8 +27,12 @@ public class TagDaoImpl implements TagDao {
     private String SQL_SELECT_TAG_BY_ID;
     @Value("${tg.delete}")
     private String SQL_DELETE_TAG;
+    @Value("${tg.deleteCertificateLink}")
+    private String SQL_DELETE_CERTIFICATE_LINK;
     @Value("${tg.save}")
     private String SQL_ADD_TAG;
+    @Value("${tg.selectByName}")
+    private String SQL_FIND_BY_NAME;
 
     private final JdbcTemplate jdbcTemplate;
     private final TagRowMapper tagRowMapper;
@@ -47,7 +51,7 @@ public class TagDaoImpl implements TagDao {
 
     @Override
     public Optional<Tag> findById(long id) {
-        return jdbcTemplate.query(SQL_SELECT_TAG_BY_ID, tagRowMapper).stream().findAny();
+        return jdbcTemplate.query(SQL_SELECT_TAG_BY_ID, tagRowMapper, id).stream().findAny();
     }
 
     @Override
@@ -70,5 +74,15 @@ public class TagDaoImpl implements TagDao {
             tag = findById(keyHolder.getKey().longValue());
         }
         return tag;
+    }
+
+    @Override
+    public Optional<Tag> findByName(String name) {
+        return jdbcTemplate.query(SQL_FIND_BY_NAME, tagRowMapper).stream().findAny();
+    }
+
+    @Override
+    public void deleteCertificateLink(long tag_id) {
+        jdbcTemplate.update(SQL_DELETE_CERTIFICATE_LINK, tag_id);
     }
 }

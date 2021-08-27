@@ -28,7 +28,7 @@ public class TagController {
         return tagService.findById(id);
     }
 
-    @PostMapping
+    @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public TagDto add(@RequestBody TagDto newTag) {
         return tagService.save(newTag);

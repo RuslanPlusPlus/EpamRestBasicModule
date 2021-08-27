@@ -12,4 +12,5 @@ public interface GiftCertificateDao extends BaseDao<GiftCertificate>{
     void addTagToGiftCertificate(long tagId, long giftCertificateId);
     List<GiftCertificate> findByTagName(String tagName);
     List<Tag> findGiftCertificateTags(long giftCertificateId);
+    void deleteTagLink(long giftCertificateId);
 }

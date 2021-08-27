@@ -24,7 +24,7 @@ public class GiftCertificateController {
         return giftCertificateService.findAll();
     }
 
-    @GetMapping("{/id}")
+    @GetMapping("/{id}")
     public GiftCertificateDto findById(@PathVariable long id) {
         return giftCertificateService.findById(id);
     }
@@ -42,12 +42,16 @@ public class GiftCertificateController {
     }
 
     @PatchMapping("/{id}")
-    public GiftCertificateDto update(@RequestBody GiftCertificateDto updatedCertificateDto, long id){
+    public GiftCertificateDto update(@RequestBody GiftCertificateDto updatedCertificateDto, @PathVariable long id){
         return giftCertificateService.update(updatedCertificateDto, id);
     }
 
-    @GetMapping("/{tagName}")
-    public List<GiftCertificateDto> findByTagName(@PathVariable String tagName){
+
+    @GetMapping("/param")
+    public List<GiftCertificateDto> findByTagName(@RequestParam(required = false, name = "tagName")String tagName
+                                                  //@RequestParam(required = false, name = "part")String part,
+                                                  //@RequestParam(required = false, name = "sort")String sort
+                                                  ){
         return giftCertificateService.findByTagName(tagName);
     }
 }
