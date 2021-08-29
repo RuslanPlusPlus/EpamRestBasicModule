@@ -106,13 +106,13 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     public Optional<GiftCertificate> update(GiftCertificate giftCertificate, long id) {
         jdbcTemplate.update(SQL_UPDATE_GIFT_CERTIFICATE, giftCertificate.getName(), giftCertificate.getDescription(),
                 giftCertificate.getPrice(), giftCertificate.getDuration(),
-                giftCertificate.getLastUpdateDate(), giftCertificate.getId(), id);
-        return findById(giftCertificate.getId());
+                valueOf(now()), id);
+        return findById(id);
     }
 
     @Override
-    public void addTagToGiftCertificate(long tagId, long giftCertificateId) {
-        jdbcTemplate.update(SQL_ADD_TAG_TO_GIFT_CERTIFICATE, tagId, giftCertificateId);
+    public void linkTagToGiftCertificate(long giftCertificateId, long tagId) {
+        jdbcTemplate.update(SQL_ADD_TAG_TO_GIFT_CERTIFICATE, giftCertificateId, tagId);
     }
 
     @Override

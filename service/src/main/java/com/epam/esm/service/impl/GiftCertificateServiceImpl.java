@@ -54,23 +54,31 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     public GiftCertificateDto save(GiftCertificateDto giftCertificateDto) {
         GiftCertificate giftCertificate = giftCertificateMapper.mapDtoToEntity(giftCertificateDto);
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.save(giftCertificate);
+
         List<Tag> tags = new ArrayList<>();
-        giftCertificate.getTags().forEach(tag -> createTag(tag).ifPresent(tags::add));
-        giftCertificateOptional.get().setTags(tags);
-        return giftCertificateMapper.mapEntityToDto(giftCertificateOptional.get());
+        if (giftCertificateOptional.isPresent()){
+            final long giftCertificateId = giftCertificateOptional.get().getId();
+            giftCertificate.getTags().forEach(tag -> createTag(tag, giftCertificateId).ifPresent(tags::add));
+            giftCertificate = giftCertificateOptional.get();
+            //System.out.println(tags);
+            giftCertificate.setTags(tags);
+        }
+        return giftCertificateMapper.mapEntityToDto(giftCertificate);
     }
 
-    private Optional<Tag> createTag(Tag tag){
+    private Optional<Tag> createTag(Tag tag, long giftCertificateId){
         Optional<Tag> optionalTag;
         if (!tagService.exists(tagMapper.mapEntityToDto(tag))){
             optionalTag = tagDao.save(tag);
+            optionalTag.ifPresent(value -> giftCertificateDao.linkTagToGiftCertificate(giftCertificateId, value.getId()));
         }else {
-            optionalTag = tagDao.findById(tag.getId());
-            System.out.println("exists");
+            optionalTag = tagDao.findByName(tag.getName());
+            optionalTag.ifPresent(value -> giftCertificateDao.linkTagToGiftCertificate(giftCertificateId, value.getId()));
         }
         return optionalTag;
     }
 
+    // TODO: 29.08.2021 throw ex if not found 
     @Override
     public GiftCertificateDto findById(Long id) {
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.findById(id);
@@ -98,7 +106,20 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     public GiftCertificateDto update(GiftCertificateDto giftCertificateDto, long id) {
-        return null;
+        if (!giftCertificateDao.findById(id).isPresent()){
+            // TODO: 29.08.2021 throw exception
+        }
+        // TODO: 29.08.2021 validate
+        giftCertificateDao.deleteTagLink(id);
+        Optional<GiftCertificate> giftCertificateUpdated =
+                giftCertificateDao.update(giftCertificateMapper.mapDtoToEntity(giftCertificateDto), id);
+        List<Tag> passedTags = tagMapper.mapDtoListToEntityList(giftCertificateDto.getTags());
+        List<Tag> tags = new ArrayList<>();
+        if (passedTags != null && !passedTags.isEmpty()){
+            passedTags.forEach(tag -> createTag(tag, id).ifPresent(tags::add));
+            giftCertificateUpdated.get().setTags(tags);
+        }
+        return giftCertificateMapper.mapEntityToDto(giftCertificateUpdated.get());
     }
 
 }
