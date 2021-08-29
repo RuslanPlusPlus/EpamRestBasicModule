@@ -1,8 +1,10 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.dao.GiftCertificateDao;
+import com.epam.esm.dao.SqlQueryBuilder;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.GiftCertificateDto;
+import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.mapper.impl.GiftCertificateMapper;
@@ -123,6 +125,23 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             giftCertificateUpdated.get().setTags(tags);
         }
         return giftCertificateMapper.mapEntityToDto(giftCertificateUpdated.get());
+    }
+
+    @Override
+    public List<GiftCertificateDto> findByQueryParams(String tagName, String sortByName, String sortByCreateDate) {
+        SqlQueryBuilder sqlQueryBuilder = new SqlQueryBuilder();
+        sqlQueryBuilder.setTagName(tagName);
+        sqlQueryBuilder.setSortByName(sortByName);
+        sqlQueryBuilder.setSortByCreateDate(sortByCreateDate);
+        System.out.println(sqlQueryBuilder);
+        List<GiftCertificate> giftCertificateList = giftCertificateDao.findByQuery(sqlQueryBuilder);
+        for (GiftCertificate giftCertificate : giftCertificateList) {
+            List<Tag> tags = giftCertificateDao.findGiftCertificateTags(giftCertificate.getId());
+            if (tags != null && !tags.isEmpty()){
+                giftCertificate.setTags(tags);
+            }
+        }
+        return giftCertificateMapper.mapEntityListToDtoList(giftCertificateList);
     }
 
 }

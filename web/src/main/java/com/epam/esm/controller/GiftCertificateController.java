@@ -48,10 +48,11 @@ public class GiftCertificateController {
 
 
     @GetMapping("/param")
-    public List<GiftCertificateDto> findByTagName(@RequestParam(required = false, name = "tagName")String tagName
-                                                  //@RequestParam(required = false, name = "part")String part,
-                                                  //@RequestParam(required = false, name = "sort")String sort
+    public List<GiftCertificateDto> findByTagName(@RequestParam(required = false, name = "tagName")String tagName,
+                                                  @RequestParam(required = false, name = "sortByName")String sortByName,
+                                                  @RequestParam(required = false, name = "sortByCreateDate")String sortByCreateDate
                                                   ){
-        return giftCertificateService.findByTagName(tagName);
+        //return giftCertificateService.findByTagName(tagName);
+        return giftCertificateService.findByQueryParams(tagName, sortByName, sortByCreateDate);
     }
 }

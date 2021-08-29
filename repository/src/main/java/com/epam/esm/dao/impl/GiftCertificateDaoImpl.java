@@ -1,6 +1,7 @@
 package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.GiftCertificateDao;
+import com.epam.esm.dao.SqlQueryBuilder;
 import com.epam.esm.dao.rowmapper.GiftCertificateRowMapper;
 import com.epam.esm.dao.rowmapper.TagRowMapper;
 import com.epam.esm.entity.GiftCertificate;
@@ -117,6 +118,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @Override
     public List<GiftCertificate> findByTagName(String tagName) {
+        System.out.println(SQL_SELECT_GIFT_CERTIFICATE_BY_TAG);
         return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_TAG, giftCertificateRowMapper, tagName);
     }
 
@@ -128,5 +130,10 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     @Override
     public void deleteTagLink(long giftCertificateId) {
         jdbcTemplate.update(SQL_DELETE_TAG_LINK, giftCertificateId);
+    }
+
+    @Override
+    public List<GiftCertificate> findByQuery(SqlQueryBuilder sqlQueryBuilder) {
+        return jdbcTemplate.query(sqlQueryBuilder.buildSqlQuery(), giftCertificateRowMapper, sqlQueryBuilder.getTagName());
     }
 }
