@@ -84,6 +84,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.findById(id);
         GiftCertificate giftCertificate = giftCertificateOptional.get();
         List<Tag> tags = giftCertificateDao.findGiftCertificateTags(id);
+        if (tags != null && !tags.isEmpty()){
+            giftCertificate.setTags(tags);
+        }
         giftCertificate.setTags(tags);
         return giftCertificateMapper.mapEntityToDto(giftCertificate);
     }
