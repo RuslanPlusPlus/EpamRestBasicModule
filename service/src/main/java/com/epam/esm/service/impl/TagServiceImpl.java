@@ -3,6 +3,9 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.ErrorCode;
+import com.epam.esm.exception.ResourceNotFoundException;
+import com.epam.esm.exception.ResponseMessage;
 import com.epam.esm.mapper.impl.TagMapper;
 import com.epam.esm.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +45,11 @@ public class TagServiceImpl implements TagService {
     @Override
     public TagDto findById(Long id) {
         Optional<Tag> optionalTag = tagDao.findById(id);
-        TagDto tagDto = new TagDto();
-        if (optionalTag.isPresent()){
-            tagDto = tagMapper.mapEntityToDto(optionalTag.get());
+        if (optionalTag.isEmpty()){
+            throw new ResourceNotFoundException(ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
+                    ErrorCode.TAG_NOT_FOUND.getErrorCode());
         }
-        return tagDto;
+        return tagMapper.mapEntityToDto(optionalTag.get());
     }
 
     @Override

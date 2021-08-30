@@ -52,7 +52,6 @@ public class GiftCertificateController {
                                                   @RequestParam(required = false, name = "sortByName")String sortByName,
                                                   @RequestParam(required = false, name = "sortByCreateDate")String sortByCreateDate
                                                   ){
-        //return giftCertificateService.findByTagName(tagName);
         return giftCertificateService.findByQueryParams(tagName, sortByName, sortByCreateDate);
     }
 }

@@ -4,9 +4,11 @@ import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.dao.SqlQueryBuilder;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.GiftCertificateDto;
-import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.ErrorCode;
+import com.epam.esm.exception.ResourceNotFoundException;
+import com.epam.esm.exception.ResponseMessage;
 import com.epam.esm.mapper.impl.GiftCertificateMapper;
 import com.epam.esm.mapper.impl.TagMapper;
 import com.epam.esm.service.GiftCertificateService;
@@ -62,7 +64,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             final long giftCertificateId = giftCertificateOptional.get().getId();
             giftCertificate.getTags().forEach(tag -> createTag(tag, giftCertificateId).ifPresent(tags::add));
             giftCertificate = giftCertificateOptional.get();
-            //System.out.println(tags);
             giftCertificate.setTags(tags);
         }
         return giftCertificateMapper.mapEntityToDto(giftCertificate);
@@ -80,10 +81,12 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return optionalTag;
     }
 
-    // TODO: 29.08.2021 throw ex if not found 
     @Override
     public GiftCertificateDto findById(Long id) {
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.findById(id);
+        if (giftCertificateOptional.isEmpty()){
+            throw new ResourceNotFoundException(ResponseMessage.RESOURCE_NOT_FOUND_BY_ID, ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode());
+        }
         GiftCertificate giftCertificate = giftCertificateOptional.get();
         List<Tag> tags = giftCertificateDao.findGiftCertificateTags(id);
         if (tags != null && !tags.isEmpty()){
@@ -133,7 +136,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         sqlQueryBuilder.setTagName(tagName);
         sqlQueryBuilder.setSortByName(sortByName);
         sqlQueryBuilder.setSortByCreateDate(sortByCreateDate);
-        System.out.println(sqlQueryBuilder);
         List<GiftCertificate> giftCertificateList = giftCertificateDao.findByQuery(sqlQueryBuilder);
         for (GiftCertificate giftCertificate : giftCertificateList) {
             List<Tag> tags = giftCertificateDao.findGiftCertificateTags(giftCertificate.getId());
