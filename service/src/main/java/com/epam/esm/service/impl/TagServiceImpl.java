@@ -46,8 +46,10 @@ public class TagServiceImpl implements TagService {
     public TagDto findById(Long id) {
         Optional<Tag> optionalTag = tagDao.findById(id);
         if (optionalTag.isEmpty()){
-            throw new ResourceNotFoundException(ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
-                    ErrorCode.TAG_NOT_FOUND.getErrorCode());
+            throw new ResourceNotFoundException(
+                    ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
+                    ErrorCode.TAG_NOT_FOUND.getErrorCode()
+            );
         }
         return tagMapper.mapEntityToDto(optionalTag.get());
     }

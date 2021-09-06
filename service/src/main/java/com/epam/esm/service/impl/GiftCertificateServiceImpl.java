@@ -71,10 +71,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private Optional<Tag> createTag(Tag tag, long giftCertificateId){
         Optional<Tag> optionalTag;
-        if (!tagService.exists(tagMapper.mapEntityToDto(tag))){
+        if (!tagService.exists(tagMapper.mapEntityToDto(tag))) {
             optionalTag = tagDao.save(tag);
             optionalTag.ifPresent(value -> giftCertificateDao.linkTagToGiftCertificate(giftCertificateId, value.getId()));
-        }else {
+        } else {
             optionalTag = tagDao.findByName(tag.getName());
             optionalTag.ifPresent(value -> giftCertificateDao.linkTagToGiftCertificate(giftCertificateId, value.getId()));
         }
@@ -85,7 +85,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     public GiftCertificateDto findById(Long id) {
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.findById(id);
         if (giftCertificateOptional.isEmpty()){
-            throw new ResourceNotFoundException(ResponseMessage.RESOURCE_NOT_FOUND_BY_ID, ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode());
+            throw new ResourceNotFoundException(
+                    ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
+                    ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode()
+            );
         }
         GiftCertificate giftCertificate = giftCertificateOptional.get();
         List<Tag> tags = giftCertificateDao.findGiftCertificateTags(id);
