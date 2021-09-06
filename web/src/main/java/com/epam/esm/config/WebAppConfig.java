@@ -38,6 +38,7 @@ public class WebAppConfig implements WebMvcConfigurer {
 
     private static final String PROD_PROFILE = "prod";
     private static final String DEV_PROFILE = "dev";
+    private static final String LOCAL_RESOLVER_BEAN_NAME = "localeResolver";
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -54,7 +55,7 @@ public class WebAppConfig implements WebMvcConfigurer {
         return messageSource;
     }
 
-    @Bean(name = "localeResolver")
+    @Bean(name = LOCAL_RESOLVER_BEAN_NAME)
     @Profile(PROD_PROFILE)
     public LocaleResolver devLocaleResolver() {
         AcceptHeaderLocaleResolver acceptHeaderLocaleResolver = new AcceptHeaderLocaleResolver();
@@ -62,7 +63,7 @@ public class WebAppConfig implements WebMvcConfigurer {
         return acceptHeaderLocaleResolver;
     }
 
-    @Bean(name = "localeResolver")
+    @Bean(name = LOCAL_RESOLVER_BEAN_NAME)
     @Profile(DEV_PROFILE)
     public LocaleResolver prodLocaleResolver() {
         AcceptHeaderLocaleResolver acceptHeaderLocaleResolver = new AcceptHeaderLocaleResolver();

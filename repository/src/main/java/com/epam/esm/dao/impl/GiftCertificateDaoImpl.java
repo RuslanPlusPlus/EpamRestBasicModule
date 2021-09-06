@@ -134,6 +134,6 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @Override
     public List<GiftCertificate> findByQuery(SqlQueryBuilder sqlQueryBuilder) {
-        return jdbcTemplate.query(sqlQueryBuilder.buildSqlQuery(), giftCertificateRowMapper, sqlQueryBuilder.getTagName());
+        return jdbcTemplate.query(sqlQueryBuilder.buildSqlQuery(), giftCertificateRowMapper, sqlQueryBuilder.getQueryParams());
     }
 }

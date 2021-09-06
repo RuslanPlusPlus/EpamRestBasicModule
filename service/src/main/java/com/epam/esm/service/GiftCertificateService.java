@@ -12,5 +12,5 @@ public interface GiftCertificateService {
     List<GiftCertificateDto> findByTagName(String tagName);
     void delete(long id);
     GiftCertificateDto update(GiftCertificateDto giftCertificateDto, long id);
-    List<GiftCertificateDto> findByQueryParams(String tagName, String sortByName, String sortByCreateDate);
+    List<GiftCertificateDto> findByQueryParams(String tagName, String partSearch, String sortByName, String sortByCreateDate);
 }

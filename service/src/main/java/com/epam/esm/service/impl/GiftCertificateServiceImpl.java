@@ -134,9 +134,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificateDto> findByQueryParams(String tagName, String sortByName, String sortByCreateDate) {
+    public List<GiftCertificateDto> findByQueryParams(String tagName, String partSearch, String sortByName, String sortByCreateDate) {
         SqlQueryBuilder sqlQueryBuilder = new SqlQueryBuilder();
         sqlQueryBuilder.setTagName(tagName);
+        sqlQueryBuilder.setPartSearch(partSearch);
         sqlQueryBuilder.setSortByName(sortByName);
         sqlQueryBuilder.setSortByCreateDate(sortByCreateDate);
         List<GiftCertificate> giftCertificateList = giftCertificateDao.findByQuery(sqlQueryBuilder);

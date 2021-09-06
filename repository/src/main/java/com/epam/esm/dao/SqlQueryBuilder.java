@@ -5,7 +5,8 @@ import java.util.List;
 
 public class SqlQueryBuilder {
     private static final String SELECT_ALL_GIFT_CERTIFICATES = "SELECT * FROM gift_certificate gc";
-    private static final String SQL_SELECT_BY_TAG_NAME = " JOIN gift_certificate_tag_link gt ON gc.id = gt.gift_certificate_id JOIN tag t ON t.id = gt.tag_id WHERE t.name = ?";
+    private static final String SQL_SELECT_BY_TAG_NAME =
+            " JOIN gift_certificate_tag_link gt ON gc.id = gt.gift_certificate_id JOIN tag t ON t.id = gt.tag_id WHERE t.name = ?";
     private static final String SQL_WORD_WHERE = " WHERE";
     private static final String SQL_WORD_AND = " AND";
     private static final String SQL_WORD_ORDER = " ORDER BY";
@@ -14,19 +15,31 @@ public class SqlQueryBuilder {
     private static final String SQL_NAME_COLUMN = " gc.name";
     private static final String DESC_ORDER = "desc";
     private static final String COMMA_SIGN = ",";
+    private static final String SQL_PART_SEARCH =
+            " (gc.name LIKE concat ('%', ?, '%') OR gc.description LIKE concat ('%', ?, '%'))";
 
     private String tagName;
     private String sortByCreateDate;
     private String sortByName;
+    private String partSearch;
     private List<String> queryParams = new ArrayList<>();
     private StringBuilder sqlQuery = new StringBuilder(SELECT_ALL_GIFT_CERTIFICATES);
 
     public SqlQueryBuilder(){}
 
-    public SqlQueryBuilder(String tagName, String sortByName, String sortByDate){
+    public SqlQueryBuilder(String tagName, String sortByName, String sortByDate, String partSearch){
         this.tagName = tagName;
         this.sortByCreateDate = sortByDate;
         this.sortByName = sortByName;
+        this.partSearch = partSearch;
+    }
+
+    public String getPartSearch() {
+        return partSearch;
+    }
+
+    public void setPartSearch(String partSearch) {
+        this.partSearch = partSearch;
     }
 
     public String getTagName() {
@@ -53,15 +66,17 @@ public class SqlQueryBuilder {
         this.sortByName = sortByName;
     }
 
-    public List<String> getQueryParams() {
-        return queryParams;
+    public Object[] getQueryParams() {
+        return queryParams.toArray();
     }
 
     public String buildSqlQuery() {
         buildSelectByTagName();
+        buildSearchByPart();
         buildSortByName();
         buildSortByCreateDate();
         String builtSqlQuery = sqlQuery.toString();
+        System.out.println(builtSqlQuery);
         sqlQuery = new StringBuilder();
         return builtSqlQuery;
     }
@@ -70,6 +85,20 @@ public class SqlQueryBuilder {
         if (tagName != null && !tagName.isEmpty()){
             sqlQuery.append(SQL_SELECT_BY_TAG_NAME);
             queryParams.add(tagName);
+        }
+    }
+
+    private void buildSearchByPart(){
+        if (partSearch != null) {
+            String sqlWord;
+            if (tagName != null){
+                sqlWord = SQL_WORD_AND;
+            }else {
+                sqlWord = SQL_WORD_WHERE;
+            }
+            sqlQuery.append(sqlWord).append(SQL_PART_SEARCH);
+            queryParams.add(partSearch);
+            queryParams.add(partSearch);
         }
     }
 
