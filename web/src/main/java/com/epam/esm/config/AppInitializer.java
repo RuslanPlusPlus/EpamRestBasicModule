@@ -13,7 +13,7 @@ public class AppInitializer extends AbstractAnnotationConfigDispatcherServletIni
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
-        servletContext.setInitParameter(SPRING_PROFILES_ACTIVE, DEV_PROFILE);
+        servletContext.setInitParameter(SPRING_PROFILES_ACTIVE, PROD_PROFILE);
         super.onStartup(servletContext);
     }
 

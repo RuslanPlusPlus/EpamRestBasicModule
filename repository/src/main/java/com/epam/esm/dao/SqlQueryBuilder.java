@@ -18,12 +18,16 @@ public class SqlQueryBuilder {
     private static final String SQL_PART_SEARCH =
             " (gc.name LIKE concat ('%', ?, '%') OR gc.description LIKE concat ('%', ?, '%'))";
 
+    /*private enum SortingOrder{
+        DESC, ACS;
+    }*/
+
     private String tagName;
     private String sortByCreateDate;
     private String sortByName;
     private String partSearch;
     private List<String> queryParams = new ArrayList<>();
-    private StringBuilder sqlQuery = new StringBuilder(SELECT_ALL_GIFT_CERTIFICATES);
+    private StringBuilder sqlQuery;
 
     public SqlQueryBuilder(){}
 
@@ -71,13 +75,13 @@ public class SqlQueryBuilder {
     }
 
     public String buildSqlQuery() {
+        sqlQuery = new StringBuilder(SELECT_ALL_GIFT_CERTIFICATES);
         buildSelectByTagName();
         buildSearchByPart();
         buildSortByName();
         buildSortByCreateDate();
         String builtSqlQuery = sqlQuery.toString();
         System.out.println(builtSqlQuery);
-        sqlQuery = new StringBuilder();
         return builtSqlQuery;
     }
 
