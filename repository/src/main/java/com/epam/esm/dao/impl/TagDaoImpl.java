@@ -51,13 +51,13 @@ public class TagDaoImpl implements TagDao {
 
     @Override
     public List<Tag> findAll() {
-        //return entityManager.createQuery("from tag t order by t.id desc", Tag.class).getResultList();
-        return jdbcTemplate.query(SQL_SELECT_ALL_SQL_TAGS, tagRowMapper);
+        return entityManager.createQuery("SELECT tag FROM Tag tag", Tag.class).getResultList();
+        //return jdbcTemplate.query(SQL_SELECT_ALL_SQL_TAGS, tagRowMapper);
     }
 
     @Override
     public Optional<Tag> findById(long id) {
-        //return jdbcTemplate.query(SQL_SELECT_TAG_BY_ID, tagRowMapper, id).stream().findAny();
+
         return Optional.of(entityManager.find(Tag.class, id));
     }
 
