@@ -1,19 +1,13 @@
 package com.epam.esm.entity;
 
-import javax.persistence.*;
+import java.util.List;
 
-@Entity
-@Table(name = "tag")
-public class Tag {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class User {
     private long id;
-
-    @Column(nullable = false)
     private String name;
+    private List<Order> orders;
 
-    public Tag(){}
+    public User(){}
 
     public long getId() {
         return id;
@@ -31,11 +25,20 @@ public class Tag {
         this.name = name;
     }
 
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
     @Override
     public String toString() {
-        return "Tag{" +
+        return "User{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", orders=" + orders +
                 '}';
     }
 }

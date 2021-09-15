@@ -11,6 +11,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
@@ -37,6 +39,9 @@ public class TagDaoImpl implements TagDao {
     private final JdbcTemplate jdbcTemplate;
     private final TagRowMapper tagRowMapper;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Autowired
     public TagDaoImpl(JdbcTemplate jdbcTemplate,
                       TagRowMapper tagRowMapper){
@@ -46,12 +51,14 @@ public class TagDaoImpl implements TagDao {
 
     @Override
     public List<Tag> findAll() {
+        //return entityManager.createQuery("from tag t order by t.id desc", Tag.class).getResultList();
         return jdbcTemplate.query(SQL_SELECT_ALL_SQL_TAGS, tagRowMapper);
     }
 
     @Override
     public Optional<Tag> findById(long id) {
-        return jdbcTemplate.query(SQL_SELECT_TAG_BY_ID, tagRowMapper, id).stream().findAny();
+        //return jdbcTemplate.query(SQL_SELECT_TAG_BY_ID, tagRowMapper, id).stream().findAny();
+        return Optional.of(entityManager.find(Tag.class, id));
     }
 
     @Override
