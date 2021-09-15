@@ -1,13 +1,32 @@
 package com.epam.esm.entity;
 
-import java.util.List;
+import javax.persistence.*;
+import java.util.Set;
 
+@Entity
+@Table(name = "user")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     private String name;
-    private List<Order> orders;
+
+    @OneToMany(
+            mappedBy = "user",
+            fetch = FetchType.EAGER,
+            cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}
+    )
+    private Set<Order> orders;
 
     public User(){}
+
+    public User(long id, String name, Set<Order> orders) {
+        this.id = id;
+        this.name = name;
+        this.orders = orders;
+    }
 
     public long getId() {
         return id;
@@ -25,11 +44,11 @@ public class User {
         this.name = name;
     }
 
-    public List<Order> getOrders() {
+    public Set<Order> getOrders() {
         return orders;
     }
 
-    public void setOrders(List<Order> orders) {
+    public void setOrders(Set<Order> orders) {
         this.orders = orders;
     }
 

@@ -57,7 +57,7 @@ public class TagDaoImpl implements TagDao {
 
     @Override
     public Optional<Tag> findById(long id) {
-
+        //return jdbcTemplate.query(SQL_SELECT_TAG_BY_ID, tagRowMapper, id).stream().findAny();
         return Optional.of(entityManager.find(Tag.class, id));
     }
 

@@ -1,6 +1,7 @@
 package com.epam.esm.entity;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "tag")
@@ -10,8 +11,14 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private String name;
+
+    @ManyToMany(
+            fetch = FetchType.EAGER,
+            mappedBy = "tags"
+    )
+    private List<GiftCertificate> giftCertificates;
 
     public Tag(){}
 
