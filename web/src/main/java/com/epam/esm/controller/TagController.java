@@ -17,11 +17,13 @@ public class TagController {
     public TagController(TagService tagService){
         this.tagService = tagService;
     }
-
+/*
     @GetMapping
     public List<TagDto> findAll(){
         return tagService.findAll();
     }
+
+ */
 
     @GetMapping("/{id}")
     public TagDto findById(@PathVariable Long id) {

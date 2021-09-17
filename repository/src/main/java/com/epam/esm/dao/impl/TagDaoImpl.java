@@ -1,95 +1,65 @@
 package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.TagDao;
-import com.epam.esm.dao.rowmapper.TagRowMapper;
 import com.epam.esm.entity.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import javax.persistence.Query;
 import java.util.List;
 import java.util.Optional;
 
-
 @Repository
-@PropertySource("classpath:sqlQueries.properties")
 public class TagDaoImpl implements TagDao {
 
-    @Value("${tg.selectAll}")
-    private String SQL_SELECT_ALL_SQL_TAGS;
-    @Value("${tg.selectById}")
-    private String SQL_SELECT_TAG_BY_ID;
-    @Value("${tg.delete}")
-    private String SQL_DELETE_TAG;
-    @Value("${tg.deleteCertificateLink}")
-    private String SQL_DELETE_CERTIFICATE_LINK;
-    @Value("${tg.save}")
-    private String SQL_ADD_TAG;
-    @Value("${tg.selectByName}")
-    private String SQL_FIND_BY_NAME;
-
-    private final JdbcTemplate jdbcTemplate;
-    private final TagRowMapper tagRowMapper;
+    private static final String SQL_FIND_BY_NAME = "SELECT t FROM Tag t WHERE t.name = :tagName";
+    private static final String SQL_FIND_ALL = "SELECT tag FROM Tag tag";
+    private static final String SQL_COUNT_RECORDS = "SELECT COUNT(tag) FROM Tag tag";
+    private static final String QUERY_TAG_NAME_PARAM = "tagName";
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Autowired
-    public TagDaoImpl(JdbcTemplate jdbcTemplate,
-                      TagRowMapper tagRowMapper){
-        this.jdbcTemplate = jdbcTemplate;
-        this.tagRowMapper = tagRowMapper;
-    }
-
     @Override
-    public List<Tag> findAll() {
-        return entityManager.createQuery("SELECT tag FROM Tag tag", Tag.class).getResultList();
-        //return jdbcTemplate.query(SQL_SELECT_ALL_SQL_TAGS, tagRowMapper);
+    public List<Tag> findAll(int page, int size) {
+        return entityManager.createQuery(SQL_FIND_ALL, Tag.class).getResultList();
     }
 
     @Override
     public Optional<Tag> findById(long id) {
-        //return jdbcTemplate.query(SQL_SELECT_TAG_BY_ID, tagRowMapper, id).stream().findAny();
-        return Optional.of(entityManager.find(Tag.class, id));
+        return Optional.ofNullable(entityManager.find(Tag.class, id));
     }
 
     @Override
     public void delete(long id) {
-        jdbcTemplate.update(SQL_DELETE_TAG, id);
+        entityManager.remove(entityManager.find(Tag.class, id));
     }
 
     @Override
-    public Optional<Tag> save(Tag obj) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        Optional<Tag> tag = Optional.empty();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(SQL_ADD_TAG, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, obj.getName());
+    public Optional<Tag> save(Tag tag) {
+        tag.setId(null);
+        Optional<Tag> result;
+        entityManager.persist(tag);
+        result = findByName(tag.getName());
+        return result;
+    }
 
-            return ps;
-        }, keyHolder);
-        if (keyHolder.getKey() != null) {
-            tag = findById(keyHolder.getKey().longValue());
-        }
-        return tag;
+    @Override
+    public long findRecordsAmount() {
+        return (long) entityManager.createQuery(SQL_COUNT_RECORDS).getSingleResult();
     }
 
     @Override
     public Optional<Tag> findByName(String name) {
-        return jdbcTemplate.query(SQL_FIND_BY_NAME, tagRowMapper, name).stream().findAny();
-    }
-
-    @Override
-    public void deleteCertificateLink(long tag_id) {
-        jdbcTemplate.update(SQL_DELETE_CERTIFICATE_LINK, tag_id);
+        Query query = entityManager.createQuery(SQL_FIND_BY_NAME);
+        query.setParameter(QUERY_TAG_NAME_PARAM, name);
+        Tag tag;
+        try{
+            tag = (Tag) query.getSingleResult();
+        }catch (NoResultException nre){
+            tag = null;
+        }
+        return Optional.ofNullable(tag);
     }
 }

@@ -113,6 +113,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                 ResponseMessage.INTERNAL_SERVER_ERROR,
                 new String[]{},
                 LocaleContextHolder.getLocale());
+        errorMessage += ": " + exception.getMessage();
         return new ErrorResponse(errorMessage, String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
     }
 }

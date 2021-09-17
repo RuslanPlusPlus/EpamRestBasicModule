@@ -9,7 +9,7 @@ public class Tag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     //@Column(nullable = false)
     private String name;
@@ -22,11 +22,11 @@ public class Tag {
 
     public Tag(){}
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -38,11 +38,20 @@ public class Tag {
         this.name = name;
     }
 
+    public List<GiftCertificate> getGiftCertificates() {
+        return giftCertificates;
+    }
+
+    public void setGiftCertificates(List<GiftCertificate> giftCertificates) {
+        this.giftCertificates = giftCertificates;
+    }
+
     @Override
     public String toString() {
         return "Tag{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", giftCertificates=" + giftCertificates +
                 '}';
     }
 }

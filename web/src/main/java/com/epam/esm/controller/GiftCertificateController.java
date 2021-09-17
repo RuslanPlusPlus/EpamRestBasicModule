@@ -11,6 +11,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/giftCertificates")
 public class GiftCertificateController {
+    private static final String DEFAULT_PAGE = "1";
+    private static final String DEFAULT_PAGE_SIZE = "10";
 
     private final GiftCertificateService giftCertificateService;
 
@@ -20,8 +22,13 @@ public class GiftCertificateController {
     }
 
     @GetMapping
-    public List<GiftCertificateDto> findAll(){
-        return giftCertificateService.findAll();
+    public List<GiftCertificateDto> findAll(@RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
+                                            @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
+        long pagesAmount = giftCertificateService.countPages(size);
+        if (page > pagesAmount){
+            // TODO: 18.09.2021 throw exception
+        }
+        return giftCertificateService.findAll(page, size);
     }
 
     @GetMapping("/{id}")
@@ -42,7 +49,10 @@ public class GiftCertificateController {
     }
 
     @PatchMapping("/{id}")
-    public GiftCertificateDto update(@RequestBody GiftCertificateDto updatedCertificateDto, @PathVariable long id){
+    public GiftCertificateDto update(
+            @RequestBody GiftCertificateDto updatedCertificateDto,
+            @PathVariable long id){
+
         return giftCertificateService.update(updatedCertificateDto, id);
     }
 
