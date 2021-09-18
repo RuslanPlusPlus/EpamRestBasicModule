@@ -20,6 +20,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @Override
     public List<GiftCertificate> findAll(int page, int size) {
+        // TODO: 18.09.2021 validate params 
         int offset = (page - 1) * size;
         Query query = entityManager.createQuery(SQL_FIND_ALL, GiftCertificate.class);
         query.setFirstResult(offset);

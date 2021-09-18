@@ -1,9 +1,13 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.dto.GiftCertificateDto;
+import com.epam.esm.hateoas.CertificateLinkBuilder;
+import com.epam.esm.hateoas.LinkBuilder;
 import com.epam.esm.service.GiftCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,13 +26,18 @@ public class GiftCertificateController {
     }
 
     @GetMapping
-    public List<GiftCertificateDto> findAll(@RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
-                                            @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
+    public HttpEntity<LinkBuilder<List<LinkBuilder<GiftCertificateDto>>>> findAll(@RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
+                                           @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
         long pagesAmount = giftCertificateService.countPages(size);
         if (page > pagesAmount){
             // TODO: 18.09.2021 throw exception
         }
-        return giftCertificateService.findAll(page, size);
+        return new ResponseEntity<>(
+                CertificateLinkBuilder.buildForAll(
+                        page, size, pagesAmount, giftCertificateService.findAll(page, size)
+                ),
+                HttpStatus.OK
+        );
     }
 
     @GetMapping("/{id}")

@@ -3,6 +3,7 @@ package com.epam.esm.entity;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -11,7 +12,7 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "create_date")
     private LocalDateTime createDate;
@@ -28,23 +29,23 @@ public class Order {
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "certificate_id")
     )
-    private List<GiftCertificate> giftCertificates;
+    private List<GiftCertificate> giftCertificates = new ArrayList<>();
 
     public Order() {
     }
 
-    public Order(long id, LocalDateTime createDate, BigDecimal cost, User user) {
+    public Order(Long id, LocalDateTime createDate, BigDecimal cost, User user) {
         this.id = id;
         this.createDate = createDate;
         this.cost = cost;
         this.user = user;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
