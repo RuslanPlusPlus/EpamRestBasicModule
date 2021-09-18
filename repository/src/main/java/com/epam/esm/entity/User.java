@@ -1,6 +1,7 @@
 package com.epam.esm.entity;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -18,11 +19,11 @@ public class User {
             fetch = FetchType.EAGER,
             cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}
     )
-    private Set<Order> orders;
+    private Set<Order> orders = new HashSet<>();
 
     public User(){}
 
-    public User(long id, String name, Set<Order> orders) {
+    public User(Long id, String name, Set<Order> orders) {
         this.id = id;
         this.name = name;
         this.orders = orders;
