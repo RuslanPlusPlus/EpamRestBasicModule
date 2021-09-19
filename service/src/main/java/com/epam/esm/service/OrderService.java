@@ -1,5 +1,13 @@
 package com.epam.esm.service;
 
-public interface OrderService {
+import com.epam.esm.dto.OrderDto;
 
+import java.util.List;
+
+public interface OrderService {
+    OrderDto save(OrderDto orderDto);
+    List<OrderDto> findAll(int page, int size);
+    OrderDto findById(Long id);
+    long countPages(int pageSize);
+    void delete(Long id);
 }

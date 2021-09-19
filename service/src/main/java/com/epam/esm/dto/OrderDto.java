@@ -10,17 +10,17 @@ public class OrderDto {
     private BigDecimal cost;
     private LocalDateTime createDate;
     private Long userId;
-    private List<GiftCertificateDto> giftCertificateDtoList = new ArrayList<>();
+    private List<GiftCertificateDto> certificates = new ArrayList<>();
 
     public OrderDto() {
     }
 
-    public OrderDto(Long id, BigDecimal cost, LocalDateTime createDate, Long userId, List<GiftCertificateDto> giftCertificateDtoList) {
+    public OrderDto(Long id, BigDecimal cost, LocalDateTime createDate, Long userId, List<GiftCertificateDto> certificates) {
         this.id = id;
         this.cost = cost;
         this.createDate = createDate;
         this.userId = userId;
-        this.giftCertificateDtoList = giftCertificateDtoList;
+        this.certificates = certificates;
     }
 
     public Long getId() {
@@ -55,12 +55,12 @@ public class OrderDto {
         this.userId = userId;
     }
 
-    public List<GiftCertificateDto> getGiftCertificateDtoList() {
-        return giftCertificateDtoList;
+    public List<GiftCertificateDto> getCertificates() {
+        return certificates;
     }
 
-    public void setGiftCertificateDtoList(List<GiftCertificateDto> giftCertificateDtoList) {
-        this.giftCertificateDtoList = giftCertificateDtoList;
+    public void setCertificates(List<GiftCertificateDto> certificates) {
+        this.certificates = certificates;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class OrderDto {
                 ", cost=" + cost +
                 ", createDate=" + createDate +
                 ", userId=" + userId +
-                ", giftCertificateDtoList=" + giftCertificateDtoList +
+                ", giftCertificateDtoList=" + certificates +
                 '}';
     }
 }

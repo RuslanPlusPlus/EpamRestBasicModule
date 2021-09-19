@@ -7,7 +7,9 @@ public enum ErrorCode {
     GC_DESCRIPTION_CORRECT("gc_03"),
     GC_PRICE_NOT_CORRECT("gc_04"),
     GC_DURATION_NOT_CORRECT("gc_05"),
-    TAG_EXISTS("tg_02");
+    TAG_EXISTS("tg_02"),
+    ORDER_NOT_FOUND("or_01"),
+    USER_NOT_FOUND("us_01");
 
     private final String errorCode;
 

@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapper implements Mapper<User, UserDto> {
 
-    private final Mapper<Order, OrderDto> orderMapper;
+    private final OrderMapper orderMapper;
 
     @Autowired
-    public UserMapper (Mapper<Order, OrderDto> orderMapper){
+    public UserMapper (OrderMapper orderMapper){
         this.orderMapper = orderMapper;
     }
 

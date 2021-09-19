@@ -1,18 +1,8 @@
 package com.epam.esm.hateoas;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.hateoas.RepresentationModel;
+import java.util.List;
 
-public class LinkBuilder<T> extends RepresentationModel<LinkBuilder<T>> {
-    private final T content;
-
-    @JsonCreator
-    public LinkBuilder(@JsonProperty("content") T content){
-        this.content = content;
-    }
-
-    public T getContent() {
-        return content;
-    }
+public interface LinkBuilder<T> {
+    LinkModel<List<LinkModel<T>>> buildForAll(int page, int size, long pageAmount, List<T> dtoList);
+    LinkModel<T> buildForOne(T dto);
 }

@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
 @Component
 public class OrderMapper implements Mapper<Order, OrderDto> {
 
-    private final Mapper<GiftCertificate, GiftCertificateDto> certificateMapper;
+    private final GiftCertificateMapper certificateMapper;
 
     @Autowired
-    public OrderMapper(Mapper<GiftCertificate, GiftCertificateDto> certificateMapper){
+    public OrderMapper(GiftCertificateMapper certificateMapper){
         this.certificateMapper = certificateMapper;
     }
 
@@ -34,7 +34,7 @@ public class OrderMapper implements Mapper<Order, OrderDto> {
                     entity.getGiftCertificates().stream()
                     .map(certificateMapper::mapEntityToDto)
                     .collect(Collectors.toList());
-            orderDto.setGiftCertificateDtoList(giftCertificateDtoList);
+            orderDto.setCertificates(giftCertificateDtoList);
         }
         return orderDto;
     }
@@ -48,9 +48,9 @@ public class OrderMapper implements Mapper<Order, OrderDto> {
         User user = new User();
         user.setId(dto.getUserId());
         order.setUser(user);
-        if (!dto.getGiftCertificateDtoList().isEmpty()){
+        if (!dto.getCertificates().isEmpty()){
             List<GiftCertificate> giftCertificateList =
-                    dto.getGiftCertificateDtoList().stream()
+                    dto.getCertificates().stream()
                     .map(certificateMapper::mapDtoToEntity)
                     .collect(Collectors.toList());
             order.setGiftCertificates(giftCertificateList);

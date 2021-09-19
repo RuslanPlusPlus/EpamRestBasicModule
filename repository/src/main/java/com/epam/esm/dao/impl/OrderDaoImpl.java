@@ -13,8 +13,8 @@ import java.util.Optional;
 @Repository
 public class OrderDaoImpl implements OrderDao {
 
-    private static final String SQL_FIND_ALL = "SELECT order FROM Order order";
-    private static final String SQL_COUNT_RECORDS = "SELECT count(order) FROM Order order";
+    private static final String SQL_FIND_ALL = "SELECT ord FROM Order ord";
+    private static final String SQL_COUNT_RECORDS = "SELECT COUNT(ord) FROM Order ord";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -35,7 +35,8 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public void delete(long id) {
-        entityManager.remove(entityManager.find(Order.class, id));
+        Order order = entityManager.find(Order.class, id);
+        entityManager.remove(order);
     }
 
     @Override

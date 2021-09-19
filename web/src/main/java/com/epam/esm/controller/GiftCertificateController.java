@@ -1,8 +1,8 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.dto.GiftCertificateDto;
-import com.epam.esm.hateoas.CertificateLinkBuilder;
 import com.epam.esm.hateoas.LinkBuilder;
+import com.epam.esm.hateoas.LinkModel;
 import com.epam.esm.service.GiftCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -19,21 +19,25 @@ public class GiftCertificateController {
     private static final String DEFAULT_PAGE_SIZE = "10";
 
     private final GiftCertificateService giftCertificateService;
+    private final LinkBuilder<GiftCertificateDto> linkBuilder;
 
     @Autowired
-    public GiftCertificateController(GiftCertificateService giftCertificateService){
+    public GiftCertificateController(GiftCertificateService giftCertificateService,
+                                     LinkBuilder<GiftCertificateDto> linkBuilder){
         this.giftCertificateService = giftCertificateService;
+        this.linkBuilder = linkBuilder;
     }
 
     @GetMapping
-    public HttpEntity<LinkBuilder<List<LinkBuilder<GiftCertificateDto>>>> findAll(@RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
-                                           @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
+    public HttpEntity<LinkModel<List<LinkModel<GiftCertificateDto>>>> findAll(
+            @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
+            @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
         long pagesAmount = giftCertificateService.countPages(size);
         if (page > pagesAmount){
             // TODO: 18.09.2021 throw exception
         }
         return new ResponseEntity<>(
-                CertificateLinkBuilder.buildForAll(
+                linkBuilder.buildForAll(
                         page, size, pagesAmount, giftCertificateService.findAll(page, size)
                 ),
                 HttpStatus.OK
@@ -41,29 +45,41 @@ public class GiftCertificateController {
     }
 
     @GetMapping("/{id}")
-    public GiftCertificateDto findById(@PathVariable long id) {
-        return giftCertificateService.findById(id);
+    public HttpEntity<LinkModel<GiftCertificateDto>> findById(@PathVariable long id) {
+        return new ResponseEntity<>(
+                linkBuilder.buildForOne(giftCertificateService.findById(id)),
+                HttpStatus.CREATED
+        );
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GiftCertificateDto save(@RequestBody GiftCertificateDto giftCertificateDto){
-        return giftCertificateService.save(giftCertificateDto);
+    public HttpEntity<LinkModel<GiftCertificateDto>> save(@RequestBody GiftCertificateDto giftCertificateDto){
+        return new ResponseEntity<>(
+                linkBuilder.buildForOne(giftCertificateService.save(giftCertificateDto)),
+                HttpStatus.CREATED
+        );
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public GiftCertificateDto delete(@PathVariable Long id) {
         giftCertificateService.delete(id);
+        return null;
     }
 
     @PatchMapping("/{id}")
-    public GiftCertificateDto update(
+    public HttpEntity<LinkModel<GiftCertificateDto>> update(
             @RequestBody GiftCertificateDto updatedCertificateDto,
             @PathVariable long id){
 
-        return giftCertificateService.update(updatedCertificateDto, id);
+        return new ResponseEntity<>(
+                linkBuilder.buildForOne(giftCertificateService.update(updatedCertificateDto, id)),
+                HttpStatus.OK
+                );
     }
+
+
 
 
     @GetMapping("/param")

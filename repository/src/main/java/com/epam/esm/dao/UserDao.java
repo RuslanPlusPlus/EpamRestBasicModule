@@ -6,6 +6,5 @@ import com.epam.esm.entity.User;
 import java.util.List;
 
 public interface UserDao extends BaseDao<User>{
-    List<Order> findOrdersByUserId(Long userId);
-    long findUserOrdersPagesAmount();
+    List<Order> findOrdersByUserId(Long userId, int page, int size);
 }

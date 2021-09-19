@@ -8,7 +8,10 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import java.util.ArrayList;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +20,8 @@ public class UserDaoImpl implements UserDao {
 
     private static final String SQL_FIND_ALL = "SELECT user FROM User user";
     private static final String SQL_COUNT_RECORDS = "SELECT count(user) FROM User user";
+    private static final String ID_PARAM = "id";
+    private static final String ORDERS_TABLE = "orders";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -54,19 +59,17 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<Order> findOrdersByUserId(Long userId) {
-        List<Order> orders = new ArrayList<>();
-        User user = entityManager.find(User.class, userId);
-        System.out.println(user);
-        if (user != null){
-            orders = new ArrayList<>(user.getOrders());
-        }
-        return orders;
+    public List<Order> findOrdersByUserId(Long userId, int page, int size) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Order> cq = cb.createQuery(Order.class);
+        Root<User> root = cq.from(User.class);
+        Join<User, Order> orders = root.join(ORDERS_TABLE);
+        cq.select(orders).where(cb.equal(root.get(ID_PARAM), userId));
+        return entityManager
+                .createQuery(cq)
+                .setFirstResult((page - 1) * size)
+                .setMaxResults(size)
+                .getResultList();
     }
 
-    @Override
-    public long findUserOrdersPagesAmount() {
-        // TODO: 18.09.2021 realization 
-        return 0;
-    }
 }
