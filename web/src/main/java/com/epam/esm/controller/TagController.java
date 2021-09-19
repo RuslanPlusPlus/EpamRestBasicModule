@@ -64,4 +64,14 @@ public class TagController {
         tagService.delete(id);
         return null;
     }
+
+    @GetMapping("/widelyUsed")
+    public HttpEntity<LinkModel<TagDto>> findWidelyUsed(){
+        return new ResponseEntity<>(
+                linkBuilder.buildForOne(tagService.findWidelyUsed()),
+                HttpStatus.OK
+        );
+    }
+
+
 }

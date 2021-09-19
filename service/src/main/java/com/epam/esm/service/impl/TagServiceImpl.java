@@ -97,4 +97,18 @@ public class TagServiceImpl implements TagService {
         pageAmount = pageAmount == 0 ? 1 : pageAmount;
         return pageAmount;
     }
+
+    @Override
+    public TagDto findWidelyUsed() {
+       Optional<Tag> tagOptional = tagDao.findWidelyUsed();
+       if (tagOptional.isEmpty()){
+           ExceptionDetail exceptionDetail = new ExceptionDetail(
+                   ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
+                   ErrorCode.TAG_NOT_FOUND.getErrorCode(),
+                   ""
+           );
+           throw new AppException(exceptionDetail);
+       }
+       return tagMapper.mapEntityToDto(tagOptional.get());
+    }
 }

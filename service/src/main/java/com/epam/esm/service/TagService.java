@@ -11,4 +11,5 @@ public interface TagService {
     void delete(Long id);
     boolean exists(TagDto tagDto);
     long countPages(int pageSize);
+    TagDto findWidelyUsed();
 }

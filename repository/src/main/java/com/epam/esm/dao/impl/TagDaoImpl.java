@@ -17,6 +17,23 @@ public class TagDaoImpl implements TagDao {
     private static final String SQL_FIND_ALL = "SELECT tag FROM Tag tag";
     private static final String SQL_COUNT_RECORDS = "SELECT COUNT(tag) FROM Tag tag";
     private static final String QUERY_TAG_NAME_PARAM = "tagName";
+    private static final String QUERY_WIDELY_USED_TAG = """
+            SELECT t.id, t.name FROM tag t
+            	INNER JOIN gift_certificate_tag_link tcl ON tcl.tag_id = t.id
+                INNER JOIN gift_certificate gc ON gc.id = tcl.gift_certificate_id
+                INNER JOIN order_certificate_link ocl ON ocl.certificate_id = gc.id
+            	INNER JOIN orders o ON o.id = ocl.order_id     
+                WHERE o.user_id IN (
+                SELECT tmp.user_id FROM (
+                    SELECT SUM(orders.cost) sumCost, user_id
+                    FROM orders
+                    GROUP BY user_id
+                    ORDER BY sumCost DESC LIMIT 1
+                  ) AS tmp
+                )
+                GROUP BY t.id
+                ORDER BY COUNT(t.id) DESC LIMIT 1
+            """;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -60,6 +77,18 @@ public class TagDaoImpl implements TagDao {
         query.setParameter(QUERY_TAG_NAME_PARAM, name);
         Tag tag;
         try{
+            tag = (Tag) query.getSingleResult();
+        }catch (NoResultException nre){
+            tag = null;
+        }
+        return Optional.ofNullable(tag);
+    }
+
+    @Override
+    public Optional<Tag> findWidelyUsed() {
+        Query query = entityManager.createNativeQuery(QUERY_WIDELY_USED_TAG, Tag.class);
+        Tag tag;
+        try {
             tag = (Tag) query.getSingleResult();
         }catch (NoResultException nre){
             tag = null;
