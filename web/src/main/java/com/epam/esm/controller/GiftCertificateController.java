@@ -4,6 +4,7 @@ import com.epam.esm.dto.GiftCertificateDto;
 import com.epam.esm.hateoas.LinkBuilder;
 import com.epam.esm.hateoas.LinkModel;
 import com.epam.esm.service.GiftCertificateService;
+import com.epam.esm.util.GiftCertificateFilterCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -30,15 +31,21 @@ public class GiftCertificateController {
 
     @GetMapping
     public HttpEntity<LinkModel<List<LinkModel<GiftCertificateDto>>>> findAll(
+            @RequestParam(name = "tagName", required = false) List<String> tagNames,
+            @RequestParam(name = "partNameOrDescription", required = false) String filterCriteria,
             @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
         long pagesAmount = giftCertificateService.countPages(size);
         if (page > pagesAmount){
             // TODO: 18.09.2021 throw exception
         }
+
         return new ResponseEntity<>(
                 linkBuilder.buildForAll(
-                        page, size, pagesAmount, giftCertificateService.findAll(page, size)
+                        page,
+                        size,
+                        pagesAmount,
+                        giftCertificateService.findAll(new GiftCertificateFilterCriteria(filterCriteria, tagNames), page, size)
                 ),
                 HttpStatus.OK
         );
@@ -80,8 +87,7 @@ public class GiftCertificateController {
     }
 
 
-
-
+    /*
     @GetMapping("/param")
     public List<GiftCertificateDto> findByTagName(@RequestParam(required = false, name = "tagName")String tagName,
                                                   @RequestParam(required = false, name = "partSearch") String partSearch,
@@ -90,4 +96,6 @@ public class GiftCertificateController {
                                                   ){
         return giftCertificateService.findByQueryParams(tagName, partSearch, sortByName, sortByCreateDate);
     }
+
+     */
 }

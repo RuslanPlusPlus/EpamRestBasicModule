@@ -11,6 +11,7 @@ import com.epam.esm.mapper.impl.GiftCertificateMapper;
 import com.epam.esm.mapper.impl.TagMapper;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.TagService;
+import com.epam.esm.util.GiftCertificateFilterCriteria;
 import com.epam.esm.validator.GiftCertificateValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,8 +45,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         this.giftCertificateValidator = giftCertificateValidator;
     }
 
-    public List<GiftCertificateDto> findAll(int page, int size){
-        List<GiftCertificate> giftCertificates = giftCertificateDao.findAll(page, size);
+    @Override
+    public List<GiftCertificateDto> findAll(GiftCertificateFilterCriteria filterCriteria, int page, int size){
+        List<GiftCertificate> giftCertificates = giftCertificateDao.findAll(
+                page, size, filterCriteria);
         return giftCertificateMapper.mapEntityListToDtoList(giftCertificates);
     }
 
@@ -127,12 +130,12 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
         return giftCertificateMapper.mapEntityToDto(giftCertificateUpdated.get());
     }
-
+/*
     @Override
     @Transactional
     public List<GiftCertificateDto> findByQueryParams(String tagName, String partSearch, String sortByName, String sortByCreateDate) {
         // TODO: 13.09.2021 validation
-/*
+
         SqlQueryBuilder sqlQueryBuilder = new SqlQueryBuilder();
         sqlQueryBuilder.setTagName(tagName);
         sqlQueryBuilder.setPartSearch(partSearch);
@@ -148,9 +151,11 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
         return giftCertificateMapper.mapEntityListToDtoList(giftCertificateList);
 
- */
+
         return null;
     }
+
+ */
 
     @Override
     @Transactional

@@ -2,10 +2,16 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.entity.GiftCertificate;
+import com.epam.esm.util.GiftCertificateFilterCriteria;
+import com.epam.esm.util.GiftCertificateQueryBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,15 +23,38 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @PersistenceContext
     private EntityManager entityManager;
+    private final GiftCertificateQueryBuilder queryBuilder;
+
+    @Autowired
+    public GiftCertificateDaoImpl(GiftCertificateQueryBuilder queryBuilder){
+        this.queryBuilder = queryBuilder;
+    }
 
     @Override
-    public List<GiftCertificate> findAll(int page, int size) {
-        // TODO: 18.09.2021 validate params 
+    public List<GiftCertificate> findAll(int page, int size, GiftCertificateFilterCriteria filterCriteria) {
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
+        Root<GiftCertificate> root = criteriaQuery.from(GiftCertificate.class);
+        criteriaQuery.select(root);
+        queryBuilder.buildQuery(
+                filterCriteria,
+                criteriaBuilder,
+                criteriaQuery,
+                root
+        );
+        return entityManager.createQuery(criteriaQuery)
+                .setFirstResult((page - 1) * size)
+                .setMaxResults(size)
+                .getResultList();
+        /*
         int offset = (page - 1) * size;
         Query query = entityManager.createQuery(SQL_FIND_ALL, GiftCertificate.class);
         query.setFirstResult(offset);
         query.setMaxResults(size);
         return query.getResultList();
+
+         */
     }
 
     @Override

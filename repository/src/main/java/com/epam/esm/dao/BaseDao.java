@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BaseDao <T>{
-    List<T> findAll(int page, int size);
     Optional<T> findById(long id);
     void delete(long id);
     Optional<T> save(T obj);
