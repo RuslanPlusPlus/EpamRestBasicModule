@@ -11,6 +11,5 @@ public interface GiftCertificateService {
     GiftCertificateDto findById(Long id);
     void delete(Long id);
     GiftCertificateDto update(GiftCertificateDto giftCertificateDto, Long id);
-    //List<GiftCertificateDto> findByQueryParams(String tagName, String partSearch, String sortByName, String sortByCreateDate);
     long countPages(int pageSize);
 }

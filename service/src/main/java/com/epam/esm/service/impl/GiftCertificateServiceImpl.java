@@ -130,32 +130,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
         return giftCertificateMapper.mapEntityToDto(giftCertificateUpdated.get());
     }
-/*
-    @Override
-    @Transactional
-    public List<GiftCertificateDto> findByQueryParams(String tagName, String partSearch, String sortByName, String sortByCreateDate) {
-        // TODO: 13.09.2021 validation
-
-        SqlQueryBuilder sqlQueryBuilder = new SqlQueryBuilder();
-        sqlQueryBuilder.setTagName(tagName);
-        sqlQueryBuilder.setPartSearch(partSearch);
-        sqlQueryBuilder.setSortByName(sortByName);
-        sqlQueryBuilder.setSortByCreateDate(sortByCreateDate);
-
-        List<GiftCertificate> giftCertificateList = giftCertificateDao.findByQuery(sqlQueryBuilder);
-        for (GiftCertificate giftCertificate : giftCertificateList) {
-            List<Tag> tags = giftCertificateDao.findGiftCertificateTags(giftCertificate.getId());
-            if (tags != null && !tags.isEmpty()){
-                giftCertificate.setTags(tags);
-            }
-        }
-        return giftCertificateMapper.mapEntityListToDtoList(giftCertificateList);
-
-
-        return null;
-    }
-
- */
 
     @Override
     @Transactional
