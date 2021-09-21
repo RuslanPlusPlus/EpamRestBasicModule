@@ -13,6 +13,8 @@ public enum ErrorCode {
     GC_DESCRIPTION_EMPTY("gc_09"),
     GC_PRICE_EMPTY("gc_10"),
     GC_DURATION_EMPTY("gc_11"),
+    GC_ID_EMPTY("gc_12"),
+    GC_ID_INCORRECT("gc_13"),
 
     TAG_NOT_FOUND("tg_01"),
     TAG_NAME_NOT_CORRECT("tg_02"),
@@ -22,8 +24,11 @@ public enum ErrorCode {
 
     ORDER_NOT_FOUND("or_01"),
     ORDER_CREATE_FAILED("or_02"),
+    ORDER_EMPTY_CERTIFICATES("or_03"),
 
     USER_NOT_FOUND("us_01"),
+    USER_ID_INCORRECT("us_03"),
+    USER_ID_EMPTY("us_03"),
 
     INCORRECT_PAGE_SIZE("pg_01"),
     INCORRECT_PAGE_NUMBER("pg_02"),

@@ -18,6 +18,11 @@ public class ResponseMessage {
     public static final String INCORRECT_PAGE_SIZE = "message.incorrect_page_size";
     public static final String INCORRECT_PAGE_NUMBER = "message.incorrect_page_number";
     public static final String PAGE_NOT_FOUND = "message.page_not_found";
+    public static final String ORDER_CERTIFICATES_EMPTY = "message.page_certificates_empty";
+    public static final String EMPTY_USER_ID = "message.empty_user_id";
+    public static final String INCORRECT_USER_ID = "message.incorrect_user_id";
+    public static final String EMPTY_CERTIFICATE_ID = "message.empty_certificate_id";
+    public static final String INCORRECT_CERTIFICATE_ID = "message.incorrect_certificate_id";
 
     public static final String INVALID_PARAM_FORMAT = "message.invalid_param_format";
     public static final String MESSAGE_NOT_READABLE = "message.http_message_not_readable";

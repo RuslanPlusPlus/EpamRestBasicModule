@@ -10,6 +10,7 @@ import com.epam.esm.entity.User;
 import com.epam.esm.exception.*;
 import com.epam.esm.mapper.impl.OrderMapper;
 import com.epam.esm.service.OrderService;
+import com.epam.esm.validator.OrderValidator;
 import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,25 +30,28 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final GiftCertificateDao certificateDao;
     private final PaginationValidator paginationValidator;
+    private final OrderValidator orderValidator;
 
     @Autowired
     public OrderServiceImpl(OrderDao orderDao,
                             OrderMapper orderMapper,
                             UserDao userDao,
                             GiftCertificateDao certificateDao,
-                            PaginationValidator paginationValidator){
+                            PaginationValidator paginationValidator,
+                            OrderValidator orderValidator){
         this.orderDao = orderDao;
         this.orderMapper = orderMapper;
         this.userDao = userDao;
         this.certificateDao = certificateDao;
         this.paginationValidator = paginationValidator;
+        this.orderValidator = orderValidator;
     }
 
     @Override
     @Transactional
     public OrderDto save(OrderDto orderDto) {
-        // TODO: 18.09.2021 validate userId
-        // TODO: 18.09.2021 validate order
+        orderValidator.validateOrder(orderDto);
+
         Optional<User> optionalUser = userDao.findById(orderDto.getUserId());
         if (optionalUser.isEmpty()){
             ExceptionDetail exceptionDetail = new ExceptionDetail(
