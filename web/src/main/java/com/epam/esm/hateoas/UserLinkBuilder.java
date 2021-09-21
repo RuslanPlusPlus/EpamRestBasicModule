@@ -1,8 +1,6 @@
 package com.epam.esm.hateoas;
 
-import com.epam.esm.controller.OrderController;
 import com.epam.esm.controller.UserController;
-import com.epam.esm.dto.OrderDto;
 import com.epam.esm.dto.UserDto;
 import org.springframework.stereotype.Component;
 

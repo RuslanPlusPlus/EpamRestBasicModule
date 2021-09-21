@@ -6,6 +6,7 @@ import com.epam.esm.hateoas.LinkModel;
 import com.epam.esm.hateoas.OrderLinkBuilder;
 import com.epam.esm.hateoas.UserLinkBuilder;
 import com.epam.esm.service.UserService;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -24,14 +25,17 @@ public class UserController {
     private final UserService userService;
     private final UserLinkBuilder userLinkBuilder;
     private final OrderLinkBuilder orderLinkBuilder;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
     public UserController(UserService userService,
                           UserLinkBuilder userLinkBuilder,
-                          OrderLinkBuilder orderLinkBuilder){
+                          OrderLinkBuilder orderLinkBuilder,
+                          PaginationValidator paginationValidator){
         this.userService = userService;
         this.userLinkBuilder = userLinkBuilder;
         this.orderLinkBuilder = orderLinkBuilder;
+        this.paginationValidator = paginationValidator;
     }
 
     @GetMapping
@@ -40,10 +44,7 @@ public class UserController {
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
 
         long pageAmount = userService.countPages(size);
-        if (page > pageAmount){
-            // TODO: 19.09.2021 throw exception
-        }
-
+        paginationValidator.checkIfPageExists(page, pageAmount);
         return new ResponseEntity<>(
                 userLinkBuilder.buildForAll(page, size, pageAmount,userService.findAll(page, size)),
                 HttpStatus.OK
@@ -65,10 +66,7 @@ public class UserController {
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size) {
 
         long pageAmount = userService.countUserOrdersPages(id, size);
-        if (page > pageAmount){
-            // TODO: 19.09.2021 throw exception
-        }
-
+        paginationValidator.checkIfPageExists(page, pageAmount);
         return new ResponseEntity<>(
                 orderLinkBuilder.buildForAll(page, size, pageAmount, userService.findUserOrders(id, page, size)),
                 HttpStatus.OK

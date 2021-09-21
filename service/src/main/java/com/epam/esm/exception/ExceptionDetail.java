@@ -1,13 +1,13 @@
 package com.epam.esm.exception;
 
 public class ExceptionDetail {
-    private String errorMessage;
-    private String ErrorCode;
-    private String incorrectParameter;
+    private final String errorMessage;
+    private final String errorCode;
+    private final String incorrectParameter;
 
     public ExceptionDetail(String errorMessage, String errorCode, String incorrectParameter) {
         this.errorMessage = errorMessage;
-        ErrorCode = errorCode;
+        this.errorCode = errorCode;
         this.incorrectParameter = incorrectParameter;
     }
 
@@ -16,7 +16,7 @@ public class ExceptionDetail {
     }
 
     public String getErrorCode() {
-        return ErrorCode;
+        return errorCode;
     }
 
     public String getIncorrectParameter() {

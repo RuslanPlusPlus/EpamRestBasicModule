@@ -13,6 +13,7 @@ import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.TagService;
 import com.epam.esm.util.GiftCertificateFilterCriteria;
 import com.epam.esm.validator.GiftCertificateValidator;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final TagDao tagDao;
     private final GiftCertificateMapper giftCertificateMapper;
     private final GiftCertificateValidator giftCertificateValidator;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateDao giftCertificateDao,
@@ -36,13 +38,15 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                                       TagService tagService,
                                       TagMapper tagMapper,
                                       TagDao tagDao,
-                                      GiftCertificateValidator giftCertificateValidator){
+                                      GiftCertificateValidator giftCertificateValidator,
+                                      PaginationValidator paginationValidator){
         this.tagService = tagService;
         this.tagMapper = tagMapper;
         this.tagDao = tagDao;
         this.giftCertificateDao = giftCertificateDao;
         this.giftCertificateMapper = giftCertificateMapper;
         this.giftCertificateValidator = giftCertificateValidator;
+        this.paginationValidator = paginationValidator;
     }
 
     @Override
@@ -55,7 +59,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     @Transactional
     public GiftCertificateDto save(GiftCertificateDto giftCertificateDto) {
-        validateCreation(giftCertificateDto);
+        List<ExceptionDetail> exceptionDetails = giftCertificateValidator.validateCreation(giftCertificateDto);
+        if (!exceptionDetails.isEmpty()){
+            throw new IncorrectParamException(exceptionDetails);
+        }
 
         GiftCertificate giftCertificate = giftCertificateMapper.mapDtoToEntity(giftCertificateDto);
         List<Tag> createdTags = createTagsByName(giftCertificateDto.getTags());
@@ -65,9 +72,11 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         Optional<GiftCertificate> giftCertificateCreated = giftCertificateDao.save(giftCertificate);
 
         if (giftCertificateCreated.isEmpty()){
-            // TODO: 17.09.2021 throw exception
+            throw new OperationException(
+                    ErrorCode.GC_CREATE_FAILED.getErrorCode(),
+                    ResponseMessage.FAILED_TO_CREATE
+            );
         }
-
         return giftCertificateMapper.mapEntityToDto(giftCertificateCreated.get());
     }
 
@@ -81,7 +90,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                     ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         GiftCertificate giftCertificate = giftCertificateOptional.get();
         return giftCertificateMapper.mapEntityToDto(giftCertificate);
@@ -90,14 +99,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     @Transactional
     public void delete(Long id) {
-        // TODO: 17.09.2021 validate id
         if (giftCertificateDao.findById(id).isEmpty()){
             ExceptionDetail exceptionDetail = new ExceptionDetail(
                     ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
                     ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         giftCertificateDao.delete(id);
     }
@@ -105,7 +113,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     @Transactional
     public GiftCertificateDto update(GiftCertificateDto giftCertificateDto, Long id) {
-        // TODO: 16.09.2021 validate id
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.findById(id);
         if (giftCertificateOptional.isEmpty()){
             ExceptionDetail exceptionDetail = new ExceptionDetail(
@@ -113,10 +120,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                     ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
 
-        validateUpdate(giftCertificateDto);
+        List<ExceptionDetail> exceptionDetails = giftCertificateValidator.validateUpdate(giftCertificateDto);
+        if (!exceptionDetails.isEmpty()){
+            throw new IncorrectParamException(exceptionDetails);
+        }
 
         GiftCertificate giftCertificate = giftCertificateOptional.get();
         setNewValues(giftCertificate, giftCertificateDto);
@@ -125,7 +135,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         giftCertificate.setTags(createdTags);
         Optional<GiftCertificate> giftCertificateUpdated = giftCertificateDao.update(giftCertificate);
         if (giftCertificateUpdated.isEmpty()){
-            // TODO: 17.09.2021 throw exception
+            throw new OperationException(
+                    ErrorCode.GC_UPDATE_FAILED.getErrorCode(),
+                    ResponseMessage.FAILED_TO_UPDATE
+            );
         }
 
         return giftCertificateMapper.mapEntityToDto(giftCertificateUpdated.get());
@@ -134,7 +147,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     @Transactional
     public long countPages(int pageSize) {
-        // TODO: 18.09.2021 validate size
+        paginationValidator.validateSize(pageSize);
         long recordsAmount = giftCertificateDao.findRecordsAmount();
         long pageAmount = recordsAmount % pageSize == 0 ? recordsAmount / pageSize : recordsAmount / pageSize + 1;
         pageAmount = pageAmount == 0 ? 1 : pageAmount;
@@ -173,90 +186,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                     createdTag.ifPresent(createdTags::add);
                 });
         return createdTags;
-    }
-
-    private void validateCreation(GiftCertificateDto giftCertificateDto){
-        if (!giftCertificateValidator.validateName(giftCertificateDto.getName())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_NAME,
-                    ErrorCode.GC_NAME_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-
-        if (!giftCertificateValidator.validateDescription(giftCertificateDto.getDescription())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_DESCRIPTION,
-                    ErrorCode.GC_DURATION_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-
-        if (!giftCertificateValidator.validatePrice(giftCertificateDto.getPrice())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_PRICE,
-                    ErrorCode.GC_PRICE_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-
-        if (!giftCertificateValidator.validateDuration(giftCertificateDto.getDuration())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_DURATION,
-                    ErrorCode.GC_DURATION_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-    }
-
-    private void validateUpdate(GiftCertificateDto giftCertificateDto){
-        if (giftCertificateDto.getName() != null){
-            if (!giftCertificateValidator.validateName(giftCertificateDto.getName())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_NAME,
-                        ErrorCode.GC_NAME_NOT_CORRECT.getErrorCode(),
-                        giftCertificateDto.getName()
-                );
-                throw new AppException(exceptionDetail);
-            }
-        }
-
-        if (giftCertificateDto.getDescription() != null){
-            if (!giftCertificateValidator.validateDescription(giftCertificateDto.getDescription())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_DESCRIPTION,
-                        ErrorCode.GC_NAME_NOT_CORRECT.getErrorCode(),
-                        giftCertificateDto.getDescription()
-                );
-                throw new AppException(exceptionDetail);
-            }
-        }
-
-        if (giftCertificateDto.getPrice() != null){
-            if (!giftCertificateValidator.validatePrice(giftCertificateDto.getPrice())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_PRICE,
-                        ErrorCode.GC_PRICE_NOT_CORRECT.getErrorCode(),
-                        String.valueOf(giftCertificateDto.getPrice())
-                );
-                throw new AppException(exceptionDetail);
-            }
-        }
-
-        if (giftCertificateDto.getDuration() != null){
-            if (!giftCertificateValidator.validateDuration(giftCertificateDto.getDuration())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_DURATION,
-                        ErrorCode.GC_DURATION_NOT_CORRECT.getErrorCode(),
-                        String.valueOf(giftCertificateDto.getDuration())
-                );
-                throw new AppException(exceptionDetail);
-            }
-        }
     }
 
 }

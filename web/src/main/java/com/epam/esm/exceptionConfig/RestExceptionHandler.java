@@ -1,8 +1,6 @@
 package com.epam.esm.exceptionConfig;
 
-import com.epam.esm.exception.AppException;
-import com.epam.esm.exception.ExceptionDetail;
-import com.epam.esm.exception.ResponseMessage;
+import com.epam.esm.exception.*;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -20,20 +18,40 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ControllerAdvice
 @RestController
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private MessageSource messageSource;
+    private final MessageSource messageSource;
 
     @Autowired
     public RestExceptionHandler(MessageSource messageSource) {
         this.messageSource = messageSource;
     }
 
-    @ExceptionHandler(AppException.class)
+    @ExceptionHandler(IncorrectParamException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleResourceNotFoundException(AppException exception){
+    public List<ErrorResponse> handleIncorrectParamException(IncorrectParamException exception){
+        List<ErrorResponse> errorResponseList = new ArrayList<>();
+        exception.getExceptionDetailList().forEach(
+                exceptionDetail -> {
+                    String errorMessage = messageSource.getMessage(
+                            exceptionDetail.getErrorMessage(),
+                            new String[]{exceptionDetail.getIncorrectParameter()},
+                            LocaleContextHolder.getLocale());
+                    String errorCode = exceptionDetail.getErrorCode();
+                    errorResponseList.add(new ErrorResponse(errorMessage, errorCode));
+                }
+        );
+        return errorResponseList;
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException exception){
         ExceptionDetail exceptionDetail = exception.getExceptionDetail();
         String errorMessage = messageSource.getMessage(
                 exceptionDetail.getErrorMessage(),
@@ -43,17 +61,16 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ErrorResponse(errorMessage, errorCode);
     }
 
-    /*@ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class,
-            BindException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleInvalidParamFormatException(Exception exception) {
-        String errorMessage = messag
-
-        eSource.getMessage(
-                ResponseMessage.INVALID_PARAM_FORMAT,null, LocaleContextHolder.getLocale());
-        logger.error(HttpStatus.BAD_REQUEST, exception);
-        return new ErrorResponse(errorMessage, String.valueOf(HttpStatus.BAD_REQUEST.value()));
-    }*/
+    @ExceptionHandler(OperationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleOperationException(OperationException exception){
+        String errorMessage = messageSource.getMessage(
+                exception.getMessage(),
+                new String[]{},
+                LocaleContextHolder.getLocale());
+        String errorCode = exception.getErrorCode();
+        return new ErrorResponse(errorMessage, errorCode);
+    }
 
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {

@@ -6,6 +6,8 @@ import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
 import com.epam.esm.mapper.impl.TagMapper;
 import com.epam.esm.service.TagService;
+import com.epam.esm.validator.PaginationValidator;
+import com.epam.esm.validator.TagValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,28 +21,45 @@ public class TagServiceImpl implements TagService {
 
     private final TagDao tagDao;
     private final TagMapper tagMapper;
+    private final PaginationValidator paginationValidator;
+    private final TagValidator tagValidator;
 
     @Autowired
-    public TagServiceImpl(TagDao tagDao, TagMapper tagMapper){
+    public TagServiceImpl(TagDao tagDao,
+                          TagMapper tagMapper,
+                          PaginationValidator paginationValidator,
+                          TagValidator tagValidator){
         this.tagMapper = tagMapper;
         this.tagDao = tagDao;
+        this.paginationValidator = paginationValidator;
+        this.tagValidator = tagValidator;
     }
 
     @Override
     @Transactional
     public TagDto save(TagDto tagDTO) {
-        TagDto resultTagDto;
-        if (!exists(tagDTO)){
-            Optional<Tag> optionalTag = tagDao.save(tagMapper.mapDtoToEntity(tagDTO));
-            if (optionalTag.isEmpty()){
-                // TODO: 17.09.2021 throw exception
-            }
-            resultTagDto = tagMapper.mapEntityToDto(optionalTag.get());
-        }else {
-            // TODO: 16.09.2021 throw exception (resource exists)
-            resultTagDto = tagDTO;
+        List<ExceptionDetail> exceptionDetailList = tagValidator.validateTag(tagDTO);
+        if (!exceptionDetailList.isEmpty()){
+            throw new IncorrectParamException(exceptionDetailList);
         }
-        return resultTagDto;
+
+        if (exists(tagDTO)) {
+            ExceptionDetail exceptionDetail = new ExceptionDetail(
+                    ResponseMessage.TAG_NAME_EXISTS,
+                    ErrorCode.TAG_EXISTS.getErrorCode(),
+                    tagDTO.getName()
+            );
+            throw new ResourceDuplicateException(exceptionDetail);
+        }
+        Optional<Tag> optionalTag = tagDao.save(tagMapper.mapDtoToEntity(tagDTO));
+        if (optionalTag.isEmpty()){
+            throw new OperationException(
+                    ResponseMessage.FAILED_TO_CREATE,
+                    ErrorCode.TAG_CREATE_FAILED.getErrorCode()
+            );
+        }
+
+        return tagMapper.mapEntityToDto(optionalTag.get());
     }
 
     @Override
@@ -53,7 +72,7 @@ public class TagServiceImpl implements TagService {
                     ErrorCode.TAG_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         return tagMapper.mapEntityToDto(optionalTag.get());
     }
@@ -77,7 +96,7 @@ public class TagServiceImpl implements TagService {
                     ErrorCode.TAG_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         tagDao.delete(id);
     }
@@ -91,7 +110,7 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional
     public long countPages(int pageSize) {
-        // TODO: 18.09.2021 validate size
+        paginationValidator.validateSize(pageSize);
         long recordsAmount = tagDao.findRecordsAmount();
         long pageAmount = recordsAmount % pageSize == 0 ? recordsAmount / pageSize : recordsAmount / pageSize + 1;
         pageAmount = pageAmount == 0 ? 1 : pageAmount;
@@ -103,11 +122,11 @@ public class TagServiceImpl implements TagService {
        Optional<Tag> tagOptional = tagDao.findWidelyUsed();
        if (tagOptional.isEmpty()){
            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                   ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
+                   ResponseMessage.SUCH_TAG_NOT_FOUND,
                    ErrorCode.TAG_NOT_FOUND.getErrorCode(),
                    ""
            );
-           throw new AppException(exceptionDetail);
+           throw new ResourceNotFoundException(exceptionDetail);
        }
        return tagMapper.mapEntityToDto(tagOptional.get());
     }

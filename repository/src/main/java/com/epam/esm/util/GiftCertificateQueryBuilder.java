@@ -36,7 +36,6 @@ public class GiftCertificateQueryBuilder {
             tagNames.forEach(tagNamesClause::value);
             predicates.add(tagNamesClause);
 
-            // TODO: 20.09.2021 think about
             criteriaQuery.groupBy(root.get(ID_PARAM));
             criteriaQuery.having(
                     criteriaBuilder.equal(

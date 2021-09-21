@@ -5,6 +5,7 @@ import com.epam.esm.hateoas.LinkBuilder;
 import com.epam.esm.hateoas.LinkModel;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.util.GiftCertificateFilterCriteria;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -21,12 +22,15 @@ public class GiftCertificateController {
 
     private final GiftCertificateService giftCertificateService;
     private final LinkBuilder<GiftCertificateDto> linkBuilder;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
     public GiftCertificateController(GiftCertificateService giftCertificateService,
-                                     LinkBuilder<GiftCertificateDto> linkBuilder){
+                                     LinkBuilder<GiftCertificateDto> linkBuilder,
+                                     PaginationValidator paginationValidator){
         this.giftCertificateService = giftCertificateService;
         this.linkBuilder = linkBuilder;
+        this.paginationValidator = paginationValidator;
     }
 
     @GetMapping
@@ -36,10 +40,7 @@ public class GiftCertificateController {
             @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
         long pagesAmount = giftCertificateService.countPages(size);
-        if (page > pagesAmount){
-            // TODO: 18.09.2021 throw exception
-        }
-
+        paginationValidator.checkIfPageExists(page, pagesAmount);
         return new ResponseEntity<>(
                 linkBuilder.buildForAll(
                         page,

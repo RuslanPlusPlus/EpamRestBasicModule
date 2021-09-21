@@ -5,13 +5,11 @@ import com.epam.esm.dto.OrderDto;
 import com.epam.esm.dto.UserDto;
 import com.epam.esm.entity.Order;
 import com.epam.esm.entity.User;
-import com.epam.esm.exception.AppException;
-import com.epam.esm.exception.ErrorCode;
-import com.epam.esm.exception.ExceptionDetail;
-import com.epam.esm.exception.ResponseMessage;
+import com.epam.esm.exception.*;
 import com.epam.esm.mapper.impl.OrderMapper;
 import com.epam.esm.mapper.impl.UserMapper;
 import com.epam.esm.service.UserService;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,20 +24,25 @@ public class UserServiceImpl implements UserService {
     private final UserDao userDao;
     private final UserMapper userMapper;
     private final OrderMapper orderMapper;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
     public UserServiceImpl (UserDao userDao,
                             UserMapper userMapper,
-                            OrderMapper orderMapper){
+                            OrderMapper orderMapper,
+                            PaginationValidator paginationValidator){
         this.userDao = userDao;
         this.userMapper = userMapper;
         this.orderMapper = orderMapper;
+        this.paginationValidator = paginationValidator;
     }
 
     @Override
     @Transactional
     public List<OrderDto> findUserOrders(Long userId, int page, int size) {
-        // TODO: 19.09.2021 validate params
+        // TODO: 19.09.2021 validate id
+        paginationValidator.validatePageNumber(page);
+        paginationValidator.validateSize(size);
         return orderMapper.mapEntityListToDtoList(userDao.findOrdersByUserId(userId, page, size));
     }
 
@@ -60,14 +63,14 @@ public class UserServiceImpl implements UserService {
                     ErrorCode.USER_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         return userMapper.mapEntityToDto(optionalUser.get());
     }
 
     @Override
     public long countPages(int pageSize) {
-        // TODO: 18.09.2021 validate size
+        paginationValidator.validateSize(pageSize);
         long recordsAmount = userDao.findRecordsAmount();
         long pageAmount = recordsAmount % pageSize == 0 ? recordsAmount / pageSize : recordsAmount / pageSize + 1;
         pageAmount = pageAmount == 0 ? 1 : pageAmount;
@@ -83,7 +86,7 @@ public class UserServiceImpl implements UserService {
                     ErrorCode.USER_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         Set<Order> orders = optionalUser.get().getOrders();
         long recordsAmount = orders == null? 0 : orders.size();

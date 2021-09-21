@@ -4,6 +4,7 @@ import com.epam.esm.dto.TagDto;
 import com.epam.esm.hateoas.LinkBuilder;
 import com.epam.esm.hateoas.LinkModel;
 import com.epam.esm.service.TagService;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -19,22 +20,22 @@ public class TagController {
     private static final String DEFAULT_PAGE_SIZE = "10";
     private final TagService tagService;
     private final LinkBuilder<TagDto> linkBuilder;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
     public TagController(TagService tagService,
-                         LinkBuilder<TagDto> linkBuilder){
+                         LinkBuilder<TagDto> linkBuilder,
+                         PaginationValidator paginationValidator){
         this.tagService = tagService;
         this.linkBuilder = linkBuilder;
+        this.paginationValidator = paginationValidator;
     }
 
     @GetMapping
     public HttpEntity<LinkModel<List<LinkModel<TagDto>>>> findAll(@RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
                                          @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
         long pagesAmount = tagService.countPages(size);
-        if (page > pagesAmount){
-            // TODO: 18.09.2021 throw exception
-        }
-
+        paginationValidator.checkIfPageExists(page, pagesAmount);
         return new ResponseEntity<>(
                 linkBuilder.buildForAll(page, size, pagesAmount, tagService.findAll(page, size)),
                 HttpStatus.OK

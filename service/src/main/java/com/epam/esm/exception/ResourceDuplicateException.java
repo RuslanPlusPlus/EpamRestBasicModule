@@ -1,9 +1,9 @@
 package com.epam.esm.exception;
 
-public class ResourceNotFoundException extends RuntimeException{
+public class ResourceDuplicateException extends RuntimeException{
     private ExceptionDetail exceptionDetail;
 
-    public ResourceNotFoundException(ExceptionDetail exceptionDetail){
+    public ResourceDuplicateException(ExceptionDetail exceptionDetail){
         this.exceptionDetail = exceptionDetail;
     }
 
@@ -15,4 +15,3 @@ public class ResourceNotFoundException extends RuntimeException{
         this.exceptionDetail = exceptionDetail;
     }
 }
-

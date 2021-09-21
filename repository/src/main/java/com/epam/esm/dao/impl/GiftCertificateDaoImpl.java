@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -18,7 +17,6 @@ import java.util.Optional;
 @Repository
 public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
-    private static final String SQL_FIND_ALL = "SELECT cert FROM GiftCertificate cert";
     private static final String SQL_COUNT_RECORDS = "SELECT count(cert) FROM GiftCertificate cert";
 
     @PersistenceContext
@@ -47,14 +45,6 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
                 .setFirstResult((page - 1) * size)
                 .setMaxResults(size)
                 .getResultList();
-        /*
-        int offset = (page - 1) * size;
-        Query query = entityManager.createQuery(SQL_FIND_ALL, GiftCertificate.class);
-        query.setFirstResult(offset);
-        query.setMaxResults(size);
-        return query.getResultList();
-
-         */
     }
 
     @Override
@@ -86,5 +76,4 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         entityManager.flush();
         return Optional.of(giftCertificate);
     }
-
 }

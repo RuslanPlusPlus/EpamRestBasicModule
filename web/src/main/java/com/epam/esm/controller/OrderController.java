@@ -4,6 +4,7 @@ import com.epam.esm.dto.OrderDto;
 import com.epam.esm.hateoas.LinkBuilder;
 import com.epam.esm.hateoas.LinkModel;
 import com.epam.esm.service.OrderService;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -21,12 +22,15 @@ public class OrderController {
 
     private final OrderService orderService;
     private final LinkBuilder<OrderDto> linkBuilder;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
     public OrderController(OrderService orderService,
-                           LinkBuilder<OrderDto> linkBuilder){
+                           LinkBuilder<OrderDto> linkBuilder,
+                           PaginationValidator paginationValidator){
         this.orderService = orderService;
         this.linkBuilder = linkBuilder;
+        this.paginationValidator = paginationValidator;
     }
 
     @GetMapping
@@ -35,10 +39,7 @@ public class OrderController {
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
 
         long pageAmount = orderService.countPages(size);
-        if (page > pageAmount){
-            // TODO: 19.09.2021 throw exception
-        }
-
+        paginationValidator.checkIfPageExists(page, orderService.countPages(size));
         return new ResponseEntity<>(
                 linkBuilder.buildForAll(page, size, pageAmount, orderService.findAll(page, size)),
                 HttpStatus.OK
