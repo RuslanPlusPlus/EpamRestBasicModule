@@ -48,10 +48,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public List<UserDto> findAll(int page, int size) {
+    public List<UserDto> findAll(int page, int size, List<String> sortParams) {
         paginationValidator.validatePageNumber(page);
         paginationValidator.validateSize(size);
-        List<User> users = userDao.findAll(page, size);
+        List<User> users = userDao.findAll(page, size, sortParams);
         return userMapper.mapEntityListToDtoList(users);
     }
 

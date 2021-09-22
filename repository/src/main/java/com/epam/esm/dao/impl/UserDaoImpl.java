@@ -2,7 +2,10 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.entity.Order;
+import com.epam.esm.entity.Tag;
 import com.epam.esm.entity.User;
+import com.epam.esm.sort.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -18,7 +21,6 @@ import java.util.Optional;
 @Repository
 public class UserDaoImpl implements UserDao {
 
-    private static final String SQL_FIND_ALL = "SELECT user FROM User user";
     private static final String SQL_COUNT_RECORDS = "SELECT count(user) FROM User user";
     private static final String ID_PARAM = "id";
     private static final String ORDERS_TABLE = "orders";
@@ -26,13 +28,32 @@ public class UserDaoImpl implements UserDao {
     @PersistenceContext
     private EntityManager entityManager;
 
+    private final SortParser<UserSortParam> sortParser;
+    private final SortParamsSetter<User, UserSortParam> sortParamsSetter;
+
+    @Autowired
+    public UserDaoImpl(SortParser<UserSortParam> sortParser,
+                      SortParamsSetter<User, UserSortParam> sortParamsSetter){
+        this.sortParser = sortParser;
+        this.sortParamsSetter = sortParamsSetter;
+    }
+
     @Override
-    public List<User> findAll(int page, int size) {
-        int offset = (page - 1) * size;
-        Query query = entityManager.createQuery(SQL_FIND_ALL);
-        query.setFirstResult(offset);
-        query.setMaxResults(size);
-        return query.getResultList();
+    public List<User> findAll(int page, int size, List<String> sortParams) {
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<User> criteriaQuery = criteriaBuilder.createQuery(User.class);
+        Root<User> root = criteriaQuery.from(User.class);
+        criteriaQuery.select(root);
+
+        List<SortParameter<UserSortParam>> sortParameterList =
+                sortParser.parseSortParams(sortParams, UserSortParam.class);
+        sortParamsSetter.setSortParams(criteriaBuilder, criteriaQuery, root, sortParameterList);
+
+        return entityManager.createQuery(criteriaQuery)
+                .setFirstResult((page - 1) * size)
+                .setMaxResults(size)
+                .getResultList();
     }
 
     @Override

@@ -40,13 +40,14 @@ public class UserController {
 
     @GetMapping
     public HttpEntity<LinkModel<List<LinkModel<UserDto>>>> findAll(
+            @RequestParam(name = "sort", required = false) List<String> sortParams,
             @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
 
         long pageAmount = userService.countPages(size);
         paginationValidator.checkIfPageExists(page, pageAmount);
         return new ResponseEntity<>(
-                userLinkBuilder.buildForAll(page, size, pageAmount,userService.findAll(page, size)),
+                userLinkBuilder.buildForAll(page, size, pageAmount,userService.findAll(page, size, sortParams)),
                 HttpStatus.OK
         );
     }

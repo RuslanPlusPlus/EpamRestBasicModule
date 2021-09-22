@@ -95,7 +95,7 @@ class TagServiceImplTest {
 
     @Test
     void findAll() {
-        //List<String> sortParams = new ArrayList<>();
+        List<String> sortParams = new ArrayList<>();
         int page = 1;
         int size = 3;
         List<TagDto> expectedList = new ArrayList<>();
@@ -121,15 +121,15 @@ class TagServiceImplTest {
 
         Mockito.doThrow().doNothing().when(paginationValidator).validateSize(size);
         Mockito.doThrow().doNothing().when(paginationValidator).validatePageNumber(page);
-        Mockito.when(tagDao.findAll(page, size)).thenReturn(tagListExpected);
+        Mockito.when(tagDao.findAll(page, size, sortParams)).thenReturn(tagListExpected);
         Mockito.when(tagMapper.mapEntityToDto(tag1)).thenReturn(tagDto1);
         Mockito.when(tagMapper.mapEntityToDto(tag2)).thenReturn(tagDto2);
-        List<TagDto> actual = tagService.findAll(page, size);
+        List<TagDto> actual = tagService.findAll(page, size, sortParams );
 
         Assertions.assertEquals(expectedList, actual);
         Mockito.verify(paginationValidator, Mockito.times(1)).validateSize(size);
         Mockito.verify(paginationValidator, Mockito.times(1)).validatePageNumber(page);
-        Mockito.verify(tagDao, Mockito.times(1)).findAll(page, size);
+        Mockito.verify(tagDao, Mockito.times(1)).findAll(page, size, sortParams);
     }
 
     @Test

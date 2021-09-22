@@ -35,13 +35,14 @@ public class OrderController {
 
     @GetMapping
     public HttpEntity<LinkModel<List<LinkModel<OrderDto>>>> findAll(
+            @RequestParam(name = "sort", required = false) List<String> sortParams,
             @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
 
         long pageAmount = orderService.countPages(size);
         paginationValidator.checkIfPageExists(page, orderService.countPages(size));
         return new ResponseEntity<>(
-                linkBuilder.buildForAll(page, size, pageAmount, orderService.findAll(page, size)),
+                linkBuilder.buildForAll(page, size, pageAmount, orderService.findAll(page, size, sortParams)),
                 HttpStatus.OK
         );
     }

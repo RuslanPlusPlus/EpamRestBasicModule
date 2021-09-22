@@ -32,12 +32,15 @@ public class TagController {
     }
 
     @GetMapping
-    public HttpEntity<LinkModel<List<LinkModel<TagDto>>>> findAll(@RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
-                                         @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
+    public HttpEntity<LinkModel<List<LinkModel<TagDto>>>> findAll(
+            @RequestParam(name = "sort", required = false) List<String> sortParams,
+            @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
+            @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
         long pagesAmount = tagService.countPages(size);
         paginationValidator.checkIfPageExists(page, pagesAmount);
+
         return new ResponseEntity<>(
-                linkBuilder.buildForAll(page, size, pagesAmount, tagService.findAll(page, size)),
+                linkBuilder.buildForAll(page, size, pagesAmount, tagService.findAll(page, size, sortParams)),
                 HttpStatus.OK
         );
     }

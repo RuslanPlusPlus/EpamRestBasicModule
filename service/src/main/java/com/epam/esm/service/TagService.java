@@ -7,7 +7,7 @@ import java.util.List;
 public interface TagService {
     TagDto save(TagDto tagDTO);
     TagDto findById(Long id);
-    List<TagDto> findAll(int page, int size);
+    List<TagDto> findAll(int page, int size, List<String> sortParams);
     void delete(Long id);
     boolean exists(TagDto tagDto);
     long countPages(int pageSize);

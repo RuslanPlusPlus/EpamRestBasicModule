@@ -2,7 +2,7 @@ package com.epam.esm.sort;
 
 public enum OrderSortParam {
     COST("cost"),
-    CREATE_DATE("createDate");
+    CREATEDATE("createDate");
 
     private final String value;
 

@@ -1,12 +1,18 @@
 package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.TagDao;
+import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.sort.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +20,6 @@ import java.util.Optional;
 public class TagDaoImpl implements TagDao {
 
     private static final String SQL_FIND_BY_NAME = "SELECT t FROM Tag t WHERE t.name = :tagName";
-    private static final String SQL_FIND_ALL = "SELECT tag FROM Tag tag";
     private static final String SQL_COUNT_RECORDS = "SELECT COUNT(tag) FROM Tag tag";
     private static final String QUERY_TAG_NAME_PARAM = "tagName";
     private static final String QUERY_WIDELY_USED_TAG = """
@@ -37,14 +42,31 @@ public class TagDaoImpl implements TagDao {
 
     @PersistenceContext
     private EntityManager entityManager;
+    private final SortParser<TagSortParam> sortParser;
+    private final SortParamsSetter<Tag, TagSortParam> sortParamsSetter;
+
+    @Autowired
+    public TagDaoImpl(SortParser<TagSortParam> sortParser,
+                      SortParamsSetter<Tag, TagSortParam> sortParamsSetter){
+        this.sortParser = sortParser;
+        this.sortParamsSetter = sortParamsSetter;
+    }
 
     @Override
-    public List<Tag> findAll(int page, int size) {
-        int offset = (page - 1) * size;
-        Query query = entityManager.createQuery(SQL_FIND_ALL, Tag.class);
-        query.setFirstResult(offset);
-        query.setMaxResults(size);
-        return query.getResultList();
+    public List<Tag> findAll(int page, int size, List<String> sortParams) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tag> criteriaQuery = criteriaBuilder.createQuery(Tag.class);
+        Root<Tag> root = criteriaQuery.from(Tag.class);
+        criteriaQuery.select(root);
+
+        List<SortParameter<TagSortParam>> sortParameterList =
+                sortParser.parseSortParams(sortParams, TagSortParam.class);
+        sortParamsSetter.setSortParams(criteriaBuilder, criteriaQuery, root, sortParameterList);
+
+        return entityManager.createQuery(criteriaQuery)
+                .setFirstResult((page - 1) * size)
+                .setMaxResults(size)
+                .getResultList();
     }
 
     @Override

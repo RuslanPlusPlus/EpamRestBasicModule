@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface UserService {
     List<OrderDto> findUserOrders(Long userId, int page, int size);
-    List<UserDto> findAll(int page, int size);
+    List<UserDto> findAll(int page, int size, List<String> sortParams);
     UserDto findById(Long id);
     long countPages(int pageSize);
     long countUserOrdersPages(Long id, int pageSize);
