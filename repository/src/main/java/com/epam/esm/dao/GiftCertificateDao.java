@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GiftCertificateDao extends BaseDao<GiftCertificate>{
-    List<GiftCertificate> findAll(int page, int size, GiftCertificateFilterCriteria filterCriteria);
+    List<GiftCertificate> findAll(int page, int size, GiftCertificateFilterCriteria filterCriteria, List<String> sortParams);
     Optional<GiftCertificate> update(GiftCertificate giftCertificate);
 }

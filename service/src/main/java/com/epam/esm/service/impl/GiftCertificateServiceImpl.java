@@ -50,9 +50,14 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificateDto> findAll(GiftCertificateFilterCriteria filterCriteria, int page, int size){
+    public List<GiftCertificateDto> findAll(GiftCertificateFilterCriteria filterCriteria,
+                                            int page,
+                                            int size,
+                                            List<String> sortParams){
+        paginationValidator.validatePageNumber(page);
+        paginationValidator.validateSize(size);
         List<GiftCertificate> giftCertificates = giftCertificateDao.findAll(
-                page, size, filterCriteria);
+                page, size, filterCriteria, sortParams);
         return giftCertificateMapper.mapEntityListToDtoList(giftCertificates);
     }
 

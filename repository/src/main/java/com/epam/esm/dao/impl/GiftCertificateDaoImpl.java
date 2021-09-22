@@ -2,6 +2,10 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.entity.GiftCertificate;
+import com.epam.esm.sort.GiftCertificateSortParam;
+import com.epam.esm.sort.SortParameter;
+import com.epam.esm.sort.SortParamsSetter;
+import com.epam.esm.sort.SortParser;
 import com.epam.esm.util.GiftCertificateFilterCriteria;
 import com.epam.esm.util.GiftCertificateQueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,25 +26,32 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     @PersistenceContext
     private EntityManager entityManager;
     private final GiftCertificateQueryBuilder queryBuilder;
+    private final SortParser<GiftCertificateSortParam> sortParser;
+    private final SortParamsSetter<GiftCertificate, GiftCertificateSortParam> sortParamsSetter;
 
     @Autowired
-    public GiftCertificateDaoImpl(GiftCertificateQueryBuilder queryBuilder){
+    public GiftCertificateDaoImpl(GiftCertificateQueryBuilder queryBuilder,
+                                  SortParser<GiftCertificateSortParam> sortParser,
+                                  SortParamsSetter<GiftCertificate, GiftCertificateSortParam> sortParamsSetter){
         this.queryBuilder = queryBuilder;
+        this.sortParser = sortParser;
+        this.sortParamsSetter = sortParamsSetter;
     }
 
     @Override
-    public List<GiftCertificate> findAll(int page, int size, GiftCertificateFilterCriteria filterCriteria) {
+    public List<GiftCertificate> findAll(int page, int size,
+                                         GiftCertificateFilterCriteria filterCriteria,
+                                         List<String> sortParams) {
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
         Root<GiftCertificate> root = criteriaQuery.from(GiftCertificate.class);
         criteriaQuery.select(root);
-        queryBuilder.buildQuery(
-                filterCriteria,
-                criteriaBuilder,
-                criteriaQuery,
-                root
-        );
+        List<SortParameter<GiftCertificateSortParam>> sortParameterList =
+                sortParser.parseSortParams(sortParams, GiftCertificateSortParam.class);
+
+        queryBuilder.buildQuery(filterCriteria, criteriaBuilder, criteriaQuery, root);
+        sortParamsSetter.setSortParams(criteriaBuilder, criteriaQuery, root, sortParameterList);
         return entityManager.createQuery(criteriaQuery)
                 .setFirstResult((page - 1) * size)
                 .setMaxResults(size)
@@ -76,4 +87,5 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         entityManager.flush();
         return Optional.of(giftCertificate);
     }
+
 }

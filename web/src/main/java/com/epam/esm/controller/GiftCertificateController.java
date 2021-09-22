@@ -37,16 +37,19 @@ public class GiftCertificateController {
     public HttpEntity<LinkModel<List<LinkModel<GiftCertificateDto>>>> findAll(
             @RequestParam(name = "tagName", required = false) List<String> tagNames,
             @RequestParam(name = "partNameOrDescription", required = false) String filterCriteria,
+            @RequestParam(name = "sort", required = false) List<String> sortParams,
             @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
         long pagesAmount = giftCertificateService.countPages(size);
         paginationValidator.checkIfPageExists(page, pagesAmount);
+
         return new ResponseEntity<>(
                 linkBuilder.buildForAll(
                         page,
                         size,
                         pagesAmount,
-                        giftCertificateService.findAll(new GiftCertificateFilterCriteria(filterCriteria, tagNames), page, size)
+                        giftCertificateService.findAll(
+                                new GiftCertificateFilterCriteria(filterCriteria, tagNames), page, size, sortParams)
                 ),
                 HttpStatus.OK
         );

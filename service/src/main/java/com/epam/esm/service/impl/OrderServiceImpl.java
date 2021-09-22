@@ -96,6 +96,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public List<OrderDto> findAll(int page, int size) {
+        paginationValidator.validatePageNumber(page);
+        paginationValidator.validateSize(size);
         List<Order> orders = orderDao.findAll(page, size);
         return orderMapper.mapEntityListToDtoList(orders);
     }

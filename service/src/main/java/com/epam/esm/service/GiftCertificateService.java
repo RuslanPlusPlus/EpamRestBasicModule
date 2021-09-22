@@ -6,7 +6,7 @@ import com.epam.esm.util.GiftCertificateFilterCriteria;
 import java.util.List;
 
 public interface GiftCertificateService {
-    List<GiftCertificateDto> findAll(GiftCertificateFilterCriteria filterCriteria, int page, int size);
+    List<GiftCertificateDto> findAll(GiftCertificateFilterCriteria filterCriteria, int page, int size, List<String> sortParams);
     GiftCertificateDto save(GiftCertificateDto giftCertificateDto);
     GiftCertificateDto findById(Long id);
     void delete(Long id);

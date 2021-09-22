@@ -80,6 +80,8 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional
     public List<TagDto> findAll(int page, int size) {
+        paginationValidator.validatePageNumber(page);
+        paginationValidator.validateSize(size);
         List<Tag> tags = tagDao.findAll(page, size);
         return tags.stream()
                 .map(tagMapper::mapEntityToDto)

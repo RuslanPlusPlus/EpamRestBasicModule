@@ -49,6 +49,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public List<UserDto> findAll(int page, int size) {
+        paginationValidator.validatePageNumber(page);
+        paginationValidator.validateSize(size);
         List<User> users = userDao.findAll(page, size);
         return userMapper.mapEntityListToDtoList(users);
     }
@@ -79,6 +81,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public long countUserOrdersPages(Long id, int pageSize) {
+        paginationValidator.validateSize(pageSize);
         Optional<User> optionalUser = userDao.findById(id);
         if (optionalUser.isEmpty()) {
             ExceptionDetail exceptionDetail = new ExceptionDetail(
