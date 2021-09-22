@@ -1,28 +1,64 @@
 package com.epam.esm.entity;
 
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "gift_certificate")
 public class GiftCertificate {
-    private long id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String name;
+
     private String description;
+
     private BigDecimal price;
+
     private Integer duration;
+
+    @Column(name = "create_date")
     private LocalDateTime createDate;
+
+    @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
 
+    @ManyToMany(
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.MERGE
+    )
+    @JoinTable(
+            name = "gift_certificate_tag_link",
+            joinColumns = @JoinColumn(name = "gift_certificate_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
     private List<Tag> tags = new ArrayList<>();
 
     public GiftCertificate(){}
 
-    public long getId() {
+    public GiftCertificate(
+            Long id, String name, String description, BigDecimal price, Integer duration,
+            LocalDateTime createDate, LocalDateTime lastUpdateDate, List<Tag> tags) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+        this.createDate = createDate;
+        this.lastUpdateDate = lastUpdateDate;
+        this.tags = tags;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

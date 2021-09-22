@@ -1,139 +1,91 @@
 package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.GiftCertificateDao;
-import com.epam.esm.dao.SqlQueryBuilder;
-import com.epam.esm.dao.rowmapper.GiftCertificateRowMapper;
-import com.epam.esm.dao.rowmapper.TagRowMapper;
 import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.entity.Tag;
+import com.epam.esm.sort.GiftCertificateSortParam;
+import com.epam.esm.sort.SortParameter;
+import com.epam.esm.sort.SortParamsSetter;
+import com.epam.esm.sort.SortParser;
+import com.epam.esm.util.GiftCertificateFilterCriteria;
+import com.epam.esm.util.GiftCertificateQueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
 
-import static java.sql.Timestamp.valueOf;
-import static java.time.LocalDateTime.now;
-
 @Repository
-@PropertySource("classpath:sqlQueries.properties")
 public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
-    @Value("${gc.selectAll}")
-    private String SQL_SELECT_ALL_GIFT_CERTIFICATES;
-    @Value("${gc.selectById}")
-    private String SQL_SELECT_GIFT_CERTIFICATE_BY_ID;
-    @Value("${gc.selectByName}")
-    private String SQL_FIND_GIFT_CERTIFICATE_BY_NAME;
-    @Value("${gc.save}")
-    private String SQL_ADD_GIFT_CERTIFICATE;
-    @Value("${gc.update}")
-    private String SQL_UPDATE_GIFT_CERTIFICATE;
-    @Value("${gc.delete}")
-    private String SQL_DELETE_GIFT_CERTIFICATE;
-    @Value("${gc.deleteTagLink}")
-    private String SQL_DELETE_TAG_LINK;
-    @Value("${gc.addTag}")
-    private String SQL_ADD_TAG_TO_GIFT_CERTIFICATE;
-    @Value("${gc.findTags}")
-    private String SQL_FIND_TAGS;
-    @Value("${gc.selectByTag}")
-    private String SQL_SELECT_GIFT_CERTIFICATE_BY_TAG;
+    private static final String SQL_COUNT_RECORDS = "SELECT count(cert) FROM GiftCertificate cert";
 
-    private final JdbcTemplate jdbcTemplate;
-    private final TagRowMapper tagRowMapper;
-    private final GiftCertificateRowMapper giftCertificateRowMapper;
+    @PersistenceContext
+    private EntityManager entityManager;
+    private final GiftCertificateQueryBuilder queryBuilder;
+    private final SortParser<GiftCertificateSortParam> sortParser;
+    private final SortParamsSetter<GiftCertificate, GiftCertificateSortParam> sortParamsSetter;
 
     @Autowired
-    public GiftCertificateDaoImpl(JdbcTemplate jdbcTemplate,
-                                  GiftCertificateRowMapper giftCertificateRowMapper,
-                                  TagRowMapper tagRowMapper){
-        this.jdbcTemplate = jdbcTemplate;
-        this.giftCertificateRowMapper = giftCertificateRowMapper;
-        this.tagRowMapper = tagRowMapper;
+    public GiftCertificateDaoImpl(GiftCertificateQueryBuilder queryBuilder,
+                                  SortParser<GiftCertificateSortParam> sortParser,
+                                  SortParamsSetter<GiftCertificate, GiftCertificateSortParam> sortParamsSetter){
+        this.queryBuilder = queryBuilder;
+        this.sortParser = sortParser;
+        this.sortParamsSetter = sortParamsSetter;
     }
 
-
     @Override
-    public List<GiftCertificate> findAll() {
-        return jdbcTemplate.query(SQL_SELECT_ALL_GIFT_CERTIFICATES, giftCertificateRowMapper);
+    public List<GiftCertificate> findAll(int page, int size,
+                                         GiftCertificateFilterCriteria filterCriteria,
+                                         List<String> sortParams) {
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
+        Root<GiftCertificate> root = criteriaQuery.from(GiftCertificate.class);
+        criteriaQuery.select(root);
+        List<SortParameter<GiftCertificateSortParam>> sortParameterList =
+                sortParser.parseSortParams(sortParams, GiftCertificateSortParam.class);
+
+        queryBuilder.buildQuery(filterCriteria, criteriaBuilder, criteriaQuery, root);
+        sortParamsSetter.setSortParams(criteriaBuilder, criteriaQuery, root, sortParameterList);
+        return entityManager.createQuery(criteriaQuery)
+                .setFirstResult((page - 1) * size)
+                .setMaxResults(size)
+                .getResultList();
     }
 
     @Override
     public Optional<GiftCertificate> findById(long id) {
-        return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_ID, giftCertificateRowMapper, id).stream().findAny();
+        return Optional.ofNullable(entityManager.find(GiftCertificate.class, id));
     }
 
     @Override
     public void delete(long id) {
-        jdbcTemplate.update(SQL_DELETE_GIFT_CERTIFICATE, id);
+        entityManager.remove(entityManager.find(GiftCertificate.class, id));
     }
 
     @Override
-    public Optional<GiftCertificate> save(GiftCertificate obj) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        Optional<GiftCertificate> giftCertificate = Optional.empty();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(SQL_ADD_GIFT_CERTIFICATE, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, obj.getName());
-            ps.setString(2, obj.getDescription());
-            ps.setBigDecimal(3, obj.getPrice());
-            ps.setInt(4, obj.getDuration());
-            ps.setTimestamp(5, valueOf(now()));
-            ps.setTimestamp(6, valueOf(now()));
-            return ps;
-        }, keyHolder);
-        if (keyHolder.getKey() != null) {
-            giftCertificate = findById(keyHolder.getKey().longValue());
-
-        }
-        return giftCertificate;
+    public Optional<GiftCertificate> save(GiftCertificate giftCertificate) {
+        giftCertificate.setId(null);
+        entityManager.persist(giftCertificate);
+        entityManager.flush();
+        return Optional.of(giftCertificate);
     }
 
     @Override
-    public Optional<GiftCertificate> findByName(String name) {
-        return jdbcTemplate.query(SQL_FIND_GIFT_CERTIFICATE_BY_NAME, giftCertificateRowMapper).stream().findAny();
+    public long findRecordsAmount() {
+        return (long) entityManager.createQuery(SQL_COUNT_RECORDS).getSingleResult();
     }
 
     @Override
-    public Optional<GiftCertificate> update(GiftCertificate giftCertificate, long id) {
-        jdbcTemplate.update(SQL_UPDATE_GIFT_CERTIFICATE, giftCertificate.getName(), giftCertificate.getDescription(),
-                giftCertificate.getPrice(), giftCertificate.getDuration(),
-                valueOf(now()), id);
-        return findById(id);
+    public Optional<GiftCertificate> update(GiftCertificate giftCertificate) {
+        giftCertificate = entityManager.merge(giftCertificate);
+        entityManager.flush();
+        return Optional.of(giftCertificate);
     }
 
-    @Override
-    public void linkTagToGiftCertificate(long giftCertificateId, long tagId) {
-        jdbcTemplate.update(SQL_ADD_TAG_TO_GIFT_CERTIFICATE, giftCertificateId, tagId);
-    }
-
-    @Override
-    public List<GiftCertificate> findByTagName(String tagName) {
-        System.out.println(SQL_SELECT_GIFT_CERTIFICATE_BY_TAG);
-        return jdbcTemplate.query(SQL_SELECT_GIFT_CERTIFICATE_BY_TAG, giftCertificateRowMapper, tagName);
-    }
-
-    @Override
-    public List<Tag> findGiftCertificateTags(long giftCertificateId) {
-        return jdbcTemplate.query(SQL_FIND_TAGS, tagRowMapper, giftCertificateId);
-    }
-
-    @Override
-    public void deleteTagLink(long giftCertificateId) {
-        jdbcTemplate.update(SQL_DELETE_TAG_LINK, giftCertificateId);
-    }
-
-    @Override
-    public List<GiftCertificate> findByQuery(SqlQueryBuilder sqlQueryBuilder) {
-        return jdbcTemplate.query(sqlQueryBuilder.buildSqlQuery(), giftCertificateRowMapper, sqlQueryBuilder.getQueryParams());
-    }
 }

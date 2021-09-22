@@ -1,9 +1,9 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.dao.GiftCertificateDao;
-import com.epam.esm.dao.SqlQueryBuilder;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.GiftCertificateDto;
+import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.*;
@@ -11,13 +11,15 @@ import com.epam.esm.mapper.impl.GiftCertificateMapper;
 import com.epam.esm.mapper.impl.TagMapper;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.TagService;
+import com.epam.esm.util.GiftCertificateFilterCriteria;
 import com.epam.esm.validator.GiftCertificateValidator;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
@@ -28,6 +30,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final TagDao tagDao;
     private final GiftCertificateMapper giftCertificateMapper;
     private final GiftCertificateValidator giftCertificateValidator;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateDao giftCertificateDao,
@@ -35,58 +38,55 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                                       TagService tagService,
                                       TagMapper tagMapper,
                                       TagDao tagDao,
-                                      GiftCertificateValidator giftCertificateValidator){
+                                      GiftCertificateValidator giftCertificateValidator,
+                                      PaginationValidator paginationValidator){
         this.tagService = tagService;
         this.tagMapper = tagMapper;
         this.tagDao = tagDao;
         this.giftCertificateDao = giftCertificateDao;
         this.giftCertificateMapper = giftCertificateMapper;
         this.giftCertificateValidator = giftCertificateValidator;
+        this.paginationValidator = paginationValidator;
     }
 
-    public List<GiftCertificateDto> findAll(){
-        List<GiftCertificate> giftCertificates = giftCertificateDao.findAll();
-        for (GiftCertificate giftCertificate : giftCertificates) {
-            List<Tag> tags = giftCertificateDao.findGiftCertificateTags(giftCertificate.getId());
-            if (tags != null && !tags.isEmpty()){
-                giftCertificate.setTags(tags);
-            }
-        }
+    @Override
+    public List<GiftCertificateDto> findAll(GiftCertificateFilterCriteria filterCriteria,
+                                            int page,
+                                            int size,
+                                            List<String> sortParams){
+        paginationValidator.validatePageNumber(page);
+        paginationValidator.validateSize(size);
+        List<GiftCertificate> giftCertificates = giftCertificateDao.findAll(
+                page, size, filterCriteria, sortParams);
         return giftCertificateMapper.mapEntityListToDtoList(giftCertificates);
     }
 
-    // TODO: 26.08.2021 return optional and throw exception
     @Override
+    @Transactional
     public GiftCertificateDto save(GiftCertificateDto giftCertificateDto) {
-        validateCreation(giftCertificateDto);
+        List<ExceptionDetail> exceptionDetails = giftCertificateValidator.validateCreation(giftCertificateDto);
+        if (!exceptionDetails.isEmpty()){
+            throw new IncorrectParamException(exceptionDetails);
+        }
 
         GiftCertificate giftCertificate = giftCertificateMapper.mapDtoToEntity(giftCertificateDto);
-        Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.save(giftCertificate);
+        List<Tag> createdTags = createTagsByName(giftCertificateDto.getTags());
+        giftCertificate.setTags(createdTags);
+        giftCertificate.setCreateDate(LocalDateTime.now());
+        giftCertificate.setLastUpdateDate(giftCertificate.getCreateDate());
+        Optional<GiftCertificate> giftCertificateCreated = giftCertificateDao.save(giftCertificate);
 
-        List<Tag> tags = new ArrayList<>();
-        if (giftCertificateOptional.isPresent()){
-            final long giftCertificateId = giftCertificateOptional.get().getId();
-            giftCertificate.getTags().forEach(tag -> createTag(tag, giftCertificateId).ifPresent(tags::add));
-            giftCertificate = giftCertificateOptional.get();
-            giftCertificate.setTags(tags);
+        if (giftCertificateCreated.isEmpty()){
+            throw new OperationException(
+                    ErrorCode.GC_CREATE_FAILED.getErrorCode(),
+                    ResponseMessage.FAILED_TO_CREATE
+            );
         }
-        return giftCertificateMapper.mapEntityToDto(giftCertificate);
-    }
-
-    // TODO: 13.09.2021 validation
-    private Optional<Tag> createTag(Tag tag, long giftCertificateId){
-        Optional<Tag> optionalTag;
-        if (!tagService.exists(tagMapper.mapEntityToDto(tag))) {
-            optionalTag = tagDao.save(tag);
-            optionalTag.ifPresent(value -> giftCertificateDao.linkTagToGiftCertificate(giftCertificateId, value.getId()));
-        } else {
-            optionalTag = tagDao.findByName(tag.getName());
-            optionalTag.ifPresent(value -> giftCertificateDao.linkTagToGiftCertificate(giftCertificateId, value.getId()));
-        }
-        return optionalTag;
+        return giftCertificateMapper.mapEntityToDto(giftCertificateCreated.get());
     }
 
     @Override
+    @Transactional
     public GiftCertificateDto findById(Long id) {
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.findById(id);
         if (giftCertificateOptional.isEmpty()){
@@ -95,167 +95,102 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                     ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         GiftCertificate giftCertificate = giftCertificateOptional.get();
-        List<Tag> tags = giftCertificateDao.findGiftCertificateTags(id);
-        if (tags != null && !tags.isEmpty()){
-            giftCertificate.setTags(tags);
-        }
-        giftCertificate.setTags(tags);
         return giftCertificateMapper.mapEntityToDto(giftCertificate);
     }
 
     @Override
-    public List<GiftCertificateDto> findByTagName(String tagName) {
-        List<GiftCertificate> giftCertificateList = giftCertificateDao.findByTagName(tagName);
-        for (GiftCertificate giftCertificate: giftCertificateList){
-            List<Tag> tags = giftCertificateDao.findGiftCertificateTags(giftCertificate.getId());
-            giftCertificate.setTags(tags);
-        }
-        return giftCertificateMapper.mapEntityListToDtoList(giftCertificateList);
-    }
-
-    @Override
-    public void delete(long id) {
+    @Transactional
+    public void delete(Long id) {
         if (giftCertificateDao.findById(id).isEmpty()){
             ExceptionDetail exceptionDetail = new ExceptionDetail(
                     ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
                     ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
         giftCertificateDao.delete(id);
-        giftCertificateDao.deleteTagLink(id);
     }
 
     @Override
-    public GiftCertificateDto update(GiftCertificateDto giftCertificateDto, long id) {
-        if (giftCertificateDao.findById(id).isEmpty()){
+    @Transactional
+    public GiftCertificateDto update(GiftCertificateDto giftCertificateDto, Long id) {
+        Optional<GiftCertificate> giftCertificateOptional = giftCertificateDao.findById(id);
+        if (giftCertificateOptional.isEmpty()){
             ExceptionDetail exceptionDetail = new ExceptionDetail(
                     ResponseMessage.RESOURCE_NOT_FOUND_BY_ID,
                     ErrorCode.GIFT_CERTIFICATE_NOT_FOUND.getErrorCode(),
                     String.valueOf(id)
             );
-            throw new AppException(exceptionDetail);
+            throw new ResourceNotFoundException(exceptionDetail);
         }
 
-        validateUpdate(giftCertificateDto);
-
-        giftCertificateDao.deleteTagLink(id);
-        Optional<GiftCertificate> giftCertificateUpdated =
-                giftCertificateDao.update(giftCertificateMapper.mapDtoToEntity(giftCertificateDto), id);
-        List<Tag> passedTags = tagMapper.mapDtoListToEntityList(giftCertificateDto.getTags());
-        List<Tag> tags = new ArrayList<>();
-        if (passedTags != null && !passedTags.isEmpty()){
-            passedTags.forEach(tag -> createTag(tag, id).ifPresent(tags::add));
-            giftCertificateUpdated.get().setTags(tags);
+        List<ExceptionDetail> exceptionDetails = giftCertificateValidator.validateUpdate(giftCertificateDto);
+        if (!exceptionDetails.isEmpty()){
+            throw new IncorrectParamException(exceptionDetails);
         }
+
+        GiftCertificate giftCertificate = giftCertificateOptional.get();
+        setNewValues(giftCertificate, giftCertificateDto);
+        giftCertificate.setLastUpdateDate(LocalDateTime.now());
+        List<Tag> createdTags = createTagsByName(giftCertificateDto.getTags());
+        giftCertificate.setTags(createdTags);
+        Optional<GiftCertificate> giftCertificateUpdated = giftCertificateDao.update(giftCertificate);
+        if (giftCertificateUpdated.isEmpty()){
+            throw new OperationException(
+                    ErrorCode.GC_UPDATE_FAILED.getErrorCode(),
+                    ResponseMessage.FAILED_TO_UPDATE
+            );
+        }
+
         return giftCertificateMapper.mapEntityToDto(giftCertificateUpdated.get());
     }
 
     @Override
-    public List<GiftCertificateDto> findByQueryParams(String tagName, String partSearch, String sortByName, String sortByCreateDate) {
-        // TODO: 13.09.2021 validation
-
-        SqlQueryBuilder sqlQueryBuilder = new SqlQueryBuilder();
-        sqlQueryBuilder.setTagName(tagName);
-        sqlQueryBuilder.setPartSearch(partSearch);
-        sqlQueryBuilder.setSortByName(sortByName);
-        sqlQueryBuilder.setSortByCreateDate(sortByCreateDate);
-        List<GiftCertificate> giftCertificateList = giftCertificateDao.findByQuery(sqlQueryBuilder);
-        for (GiftCertificate giftCertificate : giftCertificateList) {
-            List<Tag> tags = giftCertificateDao.findGiftCertificateTags(giftCertificate.getId());
-            if (tags != null && !tags.isEmpty()){
-                giftCertificate.setTags(tags);
-            }
-        }
-        return giftCertificateMapper.mapEntityListToDtoList(giftCertificateList);
+    @Transactional
+    public long countPages(int pageSize) {
+        paginationValidator.validateSize(pageSize);
+        long recordsAmount = giftCertificateDao.findRecordsAmount();
+        long pageAmount = recordsAmount % pageSize == 0 ? recordsAmount / pageSize : recordsAmount / pageSize + 1;
+        pageAmount = pageAmount == 0 ? 1 : pageAmount;
+        return pageAmount;
     }
 
-    private void validateCreation(GiftCertificateDto giftCertificateDto){
-        if (!giftCertificateValidator.validateName(giftCertificateDto.getName())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_NAME,
-                    ErrorCode.GC_NAME_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-
-        if (!giftCertificateValidator.validateDescription(giftCertificateDto.getDescription())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_DESCRIPTION,
-                    ErrorCode.GC_DURATION_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-
-        if (!giftCertificateValidator.validatePrice(giftCertificateDto.getPrice())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_PRICE,
-                    ErrorCode.GC_PRICE_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-
-        if (!giftCertificateValidator.validateDuration(giftCertificateDto.getDuration())){
-            ExceptionDetail exceptionDetail = new ExceptionDetail(
-                    ResponseMessage.INCORRECT_DURATION,
-                    ErrorCode.GC_DURATION_NOT_CORRECT.getErrorCode(),
-                    ""
-            );
-            throw new AppException(exceptionDetail);
-        }
-    }
-
-    private void validateUpdate(GiftCertificateDto giftCertificateDto){
+    private void setNewValues(GiftCertificate giftCertificate, GiftCertificateDto giftCertificateDto){
         if (giftCertificateDto.getName() != null){
-            if (!giftCertificateValidator.validateName(giftCertificateDto.getName())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_NAME,
-                        ErrorCode.GC_NAME_NOT_CORRECT.getErrorCode(),
-                        giftCertificateDto.getName()
-                );
-                throw new AppException(exceptionDetail);
-            }
+            giftCertificate.setName(giftCertificateDto.getName());
         }
-
         if (giftCertificateDto.getDescription() != null){
-            if (!giftCertificateValidator.validateDescription(giftCertificateDto.getDescription())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_DESCRIPTION,
-                        ErrorCode.GC_NAME_NOT_CORRECT.getErrorCode(),
-                        giftCertificateDto.getDescription()
-                );
-                throw new AppException(exceptionDetail);
-            }
+            giftCertificate.setDescription(giftCertificateDto.getDescription());
         }
-
         if (giftCertificateDto.getPrice() != null){
-            if (!giftCertificateValidator.validatePrice(giftCertificateDto.getPrice())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_PRICE,
-                        ErrorCode.GC_PRICE_NOT_CORRECT.getErrorCode(),
-                        String.valueOf(giftCertificateDto.getPrice())
-                );
-                throw new AppException(exceptionDetail);
-            }
+            giftCertificate.setPrice(giftCertificateDto.getPrice());
         }
-
         if (giftCertificateDto.getDuration() != null){
-            if (!giftCertificateValidator.validateDuration(giftCertificateDto.getDuration())){
-                ExceptionDetail exceptionDetail = new ExceptionDetail(
-                        ResponseMessage.INCORRECT_DURATION,
-                        ErrorCode.GC_DURATION_NOT_CORRECT.getErrorCode(),
-                        String.valueOf(giftCertificateDto.getDuration())
-                );
-                throw new AppException(exceptionDetail);
-            }
+            giftCertificate.setDuration(giftCertificateDto.getDuration());
         }
+    }
+
+    private List<Tag> createTagsByName(List<TagDto> tagDtoList){
+        Set<TagDto> tagDtoSet = new HashSet<>(tagDtoList);
+        List<Tag> createdTags = new ArrayList<>();
+
+        tagDtoSet.forEach(
+                tagDto -> {
+                    Optional<Tag> createdTag = Optional.empty();
+                    if (tagDto.getName() != null){
+                        if (tagService.exists(tagDto)){
+                            createdTag = tagDao.findByName(tagDto.getName());
+                        }else {
+                            createdTag = tagDao.save(tagMapper.mapDtoToEntity(tagDto));
+                        }
+                    }
+                    createdTag.ifPresent(createdTags::add);
+                });
+        return createdTags;
     }
 
 }

@@ -1,9 +1,15 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.dto.GiftCertificateDto;
+import com.epam.esm.hateoas.LinkBuilder;
+import com.epam.esm.hateoas.LinkModel;
 import com.epam.esm.service.GiftCertificateService;
+import com.epam.esm.util.GiftCertificateFilterCriteria;
+import com.epam.esm.validator.PaginationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,48 +17,77 @@ import java.util.List;
 @RestController
 @RequestMapping("/giftCertificates")
 public class GiftCertificateController {
+    private static final String DEFAULT_PAGE = "1";
+    private static final String DEFAULT_PAGE_SIZE = "10";
 
     private final GiftCertificateService giftCertificateService;
+    private final LinkBuilder<GiftCertificateDto> linkBuilder;
+    private final PaginationValidator paginationValidator;
 
     @Autowired
-    public GiftCertificateController(GiftCertificateService giftCertificateService){
+    public GiftCertificateController(GiftCertificateService giftCertificateService,
+                                     LinkBuilder<GiftCertificateDto> linkBuilder,
+                                     PaginationValidator paginationValidator){
         this.giftCertificateService = giftCertificateService;
+        this.linkBuilder = linkBuilder;
+        this.paginationValidator = paginationValidator;
     }
 
     @GetMapping
-    public List<GiftCertificateDto> findAll(){
-        return giftCertificateService.findAll();
+    public HttpEntity<LinkModel<List<LinkModel<GiftCertificateDto>>>> findAll(
+            @RequestParam(name = "tagName", required = false) List<String> tagNames,
+            @RequestParam(name = "partNameOrDescription", required = false) String filterCriteria,
+            @RequestParam(name = "sort", required = false) List<String> sortParams,
+            @RequestParam(defaultValue = DEFAULT_PAGE, required = false) Integer page,
+            @RequestParam(defaultValue = DEFAULT_PAGE_SIZE, required = false) Integer size){
+        long pagesAmount = giftCertificateService.countPages(size);
+        paginationValidator.checkIfPageExists(page, pagesAmount);
+
+        return new ResponseEntity<>(
+                linkBuilder.buildForAll(
+                        page,
+                        size,
+                        pagesAmount,
+                        giftCertificateService.findAll(
+                                new GiftCertificateFilterCriteria(filterCriteria, tagNames), page, size, sortParams)
+                ),
+                HttpStatus.OK
+        );
     }
 
     @GetMapping("/{id}")
-    public GiftCertificateDto findById(@PathVariable long id) {
-        return giftCertificateService.findById(id);
+    public HttpEntity<LinkModel<GiftCertificateDto>> findById(@PathVariable long id) {
+        return new ResponseEntity<>(
+                linkBuilder.buildForOne(giftCertificateService.findById(id)),
+                HttpStatus.CREATED
+        );
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GiftCertificateDto save(@RequestBody GiftCertificateDto giftCertificateDto){
-        return giftCertificateService.save(giftCertificateDto);
+    public HttpEntity<LinkModel<GiftCertificateDto>> save(@RequestBody GiftCertificateDto giftCertificateDto){
+        return new ResponseEntity<>(
+                linkBuilder.buildForOne(giftCertificateService.save(giftCertificateDto)),
+                HttpStatus.CREATED
+        );
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public GiftCertificateDto delete(@PathVariable Long id) {
         giftCertificateService.delete(id);
+        return null;
     }
 
     @PatchMapping("/{id}")
-    public GiftCertificateDto update(@RequestBody GiftCertificateDto updatedCertificateDto, @PathVariable long id){
-        return giftCertificateService.update(updatedCertificateDto, id);
+    public HttpEntity<LinkModel<GiftCertificateDto>> update(
+            @RequestBody GiftCertificateDto updatedCertificateDto,
+            @PathVariable long id){
+
+        return new ResponseEntity<>(
+                linkBuilder.buildForOne(giftCertificateService.update(updatedCertificateDto, id)),
+                HttpStatus.OK
+                );
     }
 
-
-    @GetMapping("/param")
-    public List<GiftCertificateDto> findByTagName(@RequestParam(required = false, name = "tagName")String tagName,
-                                                  @RequestParam(required = false, name = "partSearch") String partSearch,
-                                                  @RequestParam(required = false, name = "sortByName")String sortByName,
-                                                  @RequestParam(required = false, name = "sortByCreateDate")String sortByCreateDate
-                                                  ){
-        return giftCertificateService.findByQueryParams(tagName, partSearch, sortByName, sortByCreateDate);
-    }
 }
