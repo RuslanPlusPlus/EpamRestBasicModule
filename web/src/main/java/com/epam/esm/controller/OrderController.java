@@ -49,6 +49,7 @@ public class OrderController {
 
     @GetMapping("/{id}")
     public HttpEntity<LinkModel<OrderDto>> findById(@PathVariable Long id){
+        // TODO: 18.10.2021 check role and id equality
         return new ResponseEntity<>(
                 linkBuilder.buildForOne(orderService.findById(id)),
                 HttpStatus.OK

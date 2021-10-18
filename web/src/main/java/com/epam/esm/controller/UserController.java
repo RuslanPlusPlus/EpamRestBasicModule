@@ -60,6 +60,14 @@ public class UserController {
         );
     }
 
+    @PostMapping
+    public HttpEntity<LinkModel<UserDto>> findById(@RequestBody UserDto userDto){
+        return new ResponseEntity<>(
+                userLinkBuilder.buildForOne(userService.save(userDto)),
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/orders/{id}")
     public HttpEntity<LinkModel<List<LinkModel<OrderDto>>>> findOrders(
             @PathVariable Long id,

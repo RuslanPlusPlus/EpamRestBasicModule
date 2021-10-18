@@ -34,7 +34,6 @@ public class UserLinkBuilder implements LinkBuilder<UserDto>{
                             return userDtoLinkModel;
                         })
                         .collect(Collectors.toList());
-        // TODO: 19.09.2021 page transfer feature
         return new LinkModel<>(linkModelList);
     }
 

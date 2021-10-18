@@ -66,6 +66,7 @@ public class TagController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public TagDto delete(@PathVariable Long id) {
         tagService.delete(id);
+        // TODO: 10.10.2021 change return value 
         return null;
     }
 

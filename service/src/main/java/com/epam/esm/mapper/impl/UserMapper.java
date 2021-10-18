@@ -26,7 +26,9 @@ public class UserMapper implements Mapper<User, UserDto> {
     public UserDto mapEntityToDto(User entity) {
         UserDto userDto = new UserDto();
         userDto.setId(entity.getId());
-        userDto.setName(entity.getName());
+        userDto.setName(entity.getUsername());
+        userDto.setPassword(entity.getPassword());
+        userDto.setRoles(entity.getRoles());
         if (!entity.getOrders().isEmpty()){
             List<OrderDto> orderDtoList =
                     entity.getOrders().stream()
@@ -41,7 +43,9 @@ public class UserMapper implements Mapper<User, UserDto> {
     public User mapDtoToEntity(UserDto dto) {
         User user = new User();
         user.setId(dto.getId());
-        user.setName(dto.getName());
+        user.setUsername(dto.getName());
+        user.setPassword(dto.getPassword());
+        user.setRoles(dto.getRoles());
         if (!dto.getOrderDtoList().isEmpty()){
             Set<Order> orderSet =
                     dto.getOrderDtoList().stream()

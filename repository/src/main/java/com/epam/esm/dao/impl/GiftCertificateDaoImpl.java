@@ -25,6 +25,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
 
     @PersistenceContext
     private EntityManager entityManager;
+
     private final GiftCertificateQueryBuilder queryBuilder;
     private final SortParser<GiftCertificateSortParam> sortParser;
     private final SortParamsSetter<GiftCertificate, GiftCertificateSortParam> sortParamsSetter;

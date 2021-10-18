@@ -40,6 +40,8 @@ public class WebAppConfig implements WebMvcConfigurer {
     private static final String DEV_PROFILE = "dev";
     private static final String LOCAL_RESOLVER_BEAN_NAME = "localeResolver";
 
+
+
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().modules(new JavaTimeModule()).build()

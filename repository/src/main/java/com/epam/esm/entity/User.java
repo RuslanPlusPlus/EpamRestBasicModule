@@ -12,7 +12,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String username;
+
+    private String password;
 
     @OneToMany(
             mappedBy = "user",
@@ -21,13 +23,11 @@ public class User {
     )
     private Set<Order> orders = new HashSet<>();
 
-    public User(){}
-
-    public User(Long id, String name, Set<Order> orders) {
-        this.id = id;
-        this.name = name;
-        this.orders = orders;
-    }
+    @ElementCollection(targetClass = UserRole.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Set<UserRole> roles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -37,12 +37,12 @@ public class User {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String name) {
+        this.username = name;
     }
 
     public Set<Order> getOrders() {
@@ -53,16 +53,19 @@ public class User {
         this.orders = orders;
     }
 
-
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", orders=" + orders +
-                '}';
+    public String getPassword() {
+        return password;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
+    public Set<UserRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<UserRole> roles) {
+        this.roles = roles;
+    }
 }

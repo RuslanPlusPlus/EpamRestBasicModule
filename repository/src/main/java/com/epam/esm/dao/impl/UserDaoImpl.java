@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -22,6 +23,8 @@ import java.util.Optional;
 public class UserDaoImpl implements UserDao {
 
     private static final String SQL_COUNT_RECORDS = "SELECT count(user) FROM User user";
+    private static final String SQL_FIND_BY_NAME = "SELECT u FROM User u WHERE u.username = :username";
+    private static final String QUERY_USER_NAME_PARAM = "username";
     private static final String ID_PARAM = "id";
     private static final String ORDERS_TABLE = "orders";
 
@@ -91,6 +94,19 @@ public class UserDaoImpl implements UserDao {
                 .setFirstResult((page - 1) * size)
                 .setMaxResults(size)
                 .getResultList();
+    }
+
+    @Override
+    public Optional<User> findByName(String username) {
+        Query query = entityManager.createQuery(SQL_FIND_BY_NAME);
+        query.setParameter(QUERY_USER_NAME_PARAM, username);
+        User user;
+        try{
+            user = (User) query.getSingleResult();
+        }catch (NoResultException nre){
+            user = null;
+        }
+        return Optional.ofNullable(user);
     }
 
 }

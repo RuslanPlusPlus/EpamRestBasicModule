@@ -12,8 +12,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
 public class TagLinkBuilder implements LinkBuilder<TagDto> {
-    private static final Integer DEFAULT_PAGE = 1;
-    private static final Integer DEFAULT_PAGE_SIZE = 10;
     private static final String GO_TO_ME = "goToMe";
     private static final String DELETE_ME = "deleteMe";
 
@@ -32,7 +30,6 @@ public class TagLinkBuilder implements LinkBuilder<TagDto> {
                                 return tagDtoLinkModel;
                             })
                             .collect(Collectors.toList());
-            // TODO: 19.09.2021 page transfer feature
             return new LinkModel<>(linkModelList);
         }
     }

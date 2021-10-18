@@ -1,21 +1,19 @@
 package com.epam.esm.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.epam.esm.entity.UserRole;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-public class UserDto {
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class UserDto implements UserDetails {
     private Long id;
     private String name;
+    private String password;
     private List<OrderDto> orderDtoList = new ArrayList<>();
-
-    public UserDto() {
-    }
-
-    public UserDto(Long id, String name, List<OrderDto> orderDtoList) {
-        this.id = id;
-        this.name = name;
-        this.orderDtoList = orderDtoList;
-    }
+    private Set<UserRole> roles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -42,11 +40,51 @@ public class UserDto {
     }
 
     @Override
-    public String toString() {
-        return "UserDto{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", orderDtoList=" + orderDtoList +
-                '}';
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(Object::toString)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return null;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return false;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Set<UserRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<UserRole> roles) {
+        this.roles = roles;
     }
 }
