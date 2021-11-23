@@ -65,6 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/users/{id}", "/users/orders/{id}").hasRole(ROLE_ADMIN)
                 .antMatchers(HttpMethod.GET).authenticated()
                 .antMatchers(HttpMethod.POST, "/orders").authenticated()
+
                 .anyRequest()
                 .hasRole(ROLE_ADMIN)
                 .and()
@@ -73,7 +74,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
-
 
     }
 

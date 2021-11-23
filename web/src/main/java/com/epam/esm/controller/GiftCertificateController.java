@@ -43,6 +43,8 @@ public class GiftCertificateController {
         long pagesAmount = giftCertificateService.countPages(size);
         paginationValidator.checkIfPageExists(page, pagesAmount);
 
+        System.out.println("GCGCGC");
+        
         return new ResponseEntity<>(
                 linkBuilder.buildForAll(
                         page,
@@ -76,6 +78,7 @@ public class GiftCertificateController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public GiftCertificateDto delete(@PathVariable Long id) {
         giftCertificateService.delete(id);
+        // TODO: 19.10.2021 return Response entity 
         return null;
     }
 
@@ -89,5 +92,4 @@ public class GiftCertificateController {
                 HttpStatus.OK
                 );
     }
-
 }

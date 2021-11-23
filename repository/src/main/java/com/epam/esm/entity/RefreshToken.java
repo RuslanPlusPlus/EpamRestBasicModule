@@ -1,7 +1,7 @@
 package com.epam.esm.entity;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Table(name = "refresh_token")
 @Entity
@@ -18,7 +18,7 @@ public class RefreshToken {
     @Column(unique = true)
     private String token;
 
-    private LocalDateTime expireDate;
+    private Date expireDate;
 
     public long getId() {
         return id;
@@ -44,11 +44,11 @@ public class RefreshToken {
         this.token = token;
     }
 
-    public LocalDateTime getExpireDate() {
+    public Date getExpireDate() {
         return expireDate;
     }
 
-    public void setExpireDate(LocalDateTime expireDate) {
+    public void setExpireDate(Date expireDate) {
         this.expireDate = expireDate;
     }
 }

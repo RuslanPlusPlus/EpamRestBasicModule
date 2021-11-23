@@ -1,6 +1,6 @@
 package com.epam.esm.dto;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 public class RefreshTokenDto {
     private Long id;
@@ -9,7 +9,7 @@ public class RefreshTokenDto {
 
     private String token;
 
-    private LocalDateTime expireDate;
+    private Date expireDate;
 
     public Long getId() {
         return id;
@@ -35,11 +35,11 @@ public class RefreshTokenDto {
         this.token = token;
     }
 
-    public LocalDateTime getExpireDate() {
+    public Date getExpireDate() {
         return expireDate;
     }
 
-    public void setExpireDate(LocalDateTime expireDate) {
+    public void setExpireDate(Date expireDate) {
         this.expireDate = expireDate;
     }
 }

@@ -112,12 +112,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Transactional
     public UserDto save(UserDto userDto) {
         // TODO: 18.10.2021 validate user
-        if (userDao.findByName(userDto.getName()).isPresent()) {
+        if (userDao.findByName(userDto.getUsername()).isPresent()) {
             ExceptionDetail exceptionDetail = new ExceptionDetail(
                     // TODO: 18.10.2021 REPLACE WITH USER
                     ResponseMessage.TAG_NAME_EXISTS,
                     ErrorCode.TAG_EXISTS.getErrorCode(),
-                    userDto.getName()
+                    userDto.getUsername()
             );
             throw new ResourceDuplicateException(exceptionDetail);
         }

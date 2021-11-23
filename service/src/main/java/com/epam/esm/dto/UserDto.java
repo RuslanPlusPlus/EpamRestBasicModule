@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class UserDto implements UserDetails {
     private Long id;
-    private String name;
+    private String username;
     private String password;
     private List<OrderDto> orderDtoList = new ArrayList<>();
     private Set<UserRole> roles = new HashSet<>();
@@ -23,12 +23,12 @@ public class UserDto implements UserDetails {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public List<OrderDto> getOrderDtoList() {
@@ -39,41 +39,8 @@ public class UserDto implements UserDetails {
         this.orderDtoList = orderDtoList;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(Object::toString)
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-    }
-
     public String getPassword() {
         return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return null;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return false;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return false;
     }
 
     public void setPassword(String password) {
@@ -86,5 +53,48 @@ public class UserDto implements UserDetails {
 
     public void setRoles(Set<UserRole> roles) {
         this.roles = roles;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(Object::toString)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserDto userDto = (UserDto) o;
+        return Objects.equals(id, userDto.id)
+                && Objects.equals(username, userDto.username)
+                && Objects.equals(password, userDto.password);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, password);
     }
 }
